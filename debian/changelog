@@ -1,3 +1,9 @@
+mintconstructor (2.3.3) julia; urgency=low
+
+  * Added lzma as dependency
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed,  01 Dec 2010 13:02:00 +0000
+
 mintconstructor (2.3.2) julia; urgency=low
 
   * Changed label to Julia
