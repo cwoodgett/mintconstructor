@@ -10,8 +10,8 @@ import re
 import commands
 
 try:
-     import pygtk
-     pygtk.require("2.0")
+    import pygtk
+    pygtk.require("2.0")
 except Exception, detail:
     print detail
     pass
@@ -64,10 +64,10 @@ class Reconstructor:
         self.pageFinish = 3
         self.enableExperimental = False
         self.gnomeBinPath = '/usr/bin/gnome-session'
-        self.f = sys.stdout     
+        self.f = sys.stdout
         self.treeModel = None
-        self.treeView = None      
-        
+        self.treeView = None
+
         # time command for timing operations
         self.timeCmd = commands.getoutput('which time') + ' -f \"\nBuild Time: %E  CPU: %P\n\"'
 
@@ -81,9 +81,9 @@ class Reconstructor:
         gettext.textdomain(APPDOMAIN)
         gettext.install(APPDOMAIN, LANGDIR, unicode=1)
 
-	# i18n for menu item
-	menuName = _("Live CD Remastering Tool")
-	menuComment = _("Make changes to an ISO or a liveCD")
+        # i18n for menu item
+        menuName = _("Live CD Remastering Tool")
+        menuComment = _("Make changes to an ISO or a liveCD")
 
         # setup glade widget tree
         self.wTree = gtk.glade.XML(self.gladefile, domain='reconstructor')
@@ -107,7 +107,7 @@ class Reconstructor:
             "on_buttonBurnIso_clicked" : self.on_buttonBurnIso_clicked,
             "on_windowMain_delete_event" : gtk.main_quit,
             "on_windowMain_destroy" : self.exitApp }
-        self.wTree.signal_autoconnect(dic)     
+        self.wTree.signal_autoconnect(dic)
 
         # set icons & logo
         self.wTree.get_widget("windowMain").set_icon_from_file(self.iconFile)
@@ -127,11 +127,11 @@ class Reconstructor:
         # hide back button initially
         self.wTree.get_widget("buttonBack").hide()
         # set default working directory path
-	if os.path.exists(os.environ['HOME'] + "/.linuxmint/mintConstructor/currentProject"):
-		currentProject = commands.getoutput("cat ~/.linuxmint/mintConstructor/currentProject")
-	else:
-		currentProject = os.environ['HOME']
-	self.wTree.get_widget("entryWorkingDir").set_text(currentProject)	
+        if os.path.exists(os.environ['HOME'] + "/.linuxmint/mintConstructor/currentProject"):
+            currentProject = commands.getoutput("cat ~/.linuxmint/mintConstructor/currentProject")
+        else:
+            currentProject = os.environ['HOME']
+        self.wTree.get_widget("entryWorkingDir").set_text(currentProject)
         # set default iso filenames
         self.wTree.get_widget("entryLiveIsoFilename").set_text(os.path.join(currentProject, "LinuxMint-9-DEV-xxx.iso"))
         # set default descriptions
@@ -139,7 +139,7 @@ class Reconstructor:
         self.wTree.get_widget("entryLiveCdDescription").set_text(cdDesc)
         # set default cd architectures
         self.wTree.get_widget("comboboxLiveCdArch").set_active(0)
-  
+
     def checkSetup(self):
         setup = False
         if self.createRemasterDir == True:
@@ -151,7 +151,7 @@ class Reconstructor:
         else:
             # nothing to be done
             setup = False
-        return setup   
+        return setup
 
     def checkCustomDir(self):
         if self.customDir == "":
@@ -321,9 +321,9 @@ class Reconstructor:
                     warnDlg.destroy()
                     return False
         elif pageNum == self.pageLiveCustomize:
-	    self.setPage(self.pageLiveBuild)
+            self.setPage(self.pageLiveBuild)
             self.checkEnableBurnIso()
-            return True            
+            return True
 
         elif pageNum == self.pageLiveBuild:
             # build
@@ -377,7 +377,7 @@ class Reconstructor:
         gtk.main_quit()
         sys.exit(0)
 
-     
+
     # launch chroot terminal
     def launchTerminal(self):
         try:
@@ -404,20 +404,20 @@ class Reconstructor:
             os.popen('chmod a+x ' + os.path.join(self.customDir, "/tmp/reconstructor-terminal.sh"))
             # TODO: replace default terminal title with "Reconstructor Terminal"
             # use gnome-terminal if available -- more features
-	    #if commands.getoutput('which gnome-terminal') != '':
-	    #	print _('Launching Gnome-Terminal for advanced customization...')
-	    #	os.popen('export HOME=/root ; gnome-terminal --hide-menubar -t \"Reconstructor Terminal\" -e \"/tmp/reconstructor-terminal.sh\"')
-	    if commands.getoutput('which x-terminal-emulator') != '':
-		print _('Launching Xterm for advanced customization...')
-	    	# use x-terminal-emulator if xterm isn't available
-		if os.path.exists("/usr/bin/xterm"):
-		    	os.popen('export HOME=/root ; xterm -bg black -fg white -rightbar -title \"Reconstructor Terminal\" -e /tmp/reconstructor-terminal.sh')
-		else:
-			os.popen('export HOME=/root ; x-terminal-emulator -e /tmp/reconstructor-terminal.sh')
- 	    else:
-	    	print _('Error: no valid terminal found')
-	    	gtk.main_quit()
-	    	sys.exit(1)
+            #if commands.getoutput('which gnome-terminal') != '':
+            #   print _('Launching Gnome-Terminal for advanced customization...')
+            #   os.popen('export HOME=/root ; gnome-terminal --hide-menubar -t \"Reconstructor Terminal\" -e \"/tmp/reconstructor-terminal.sh\"')
+            if commands.getoutput('which x-terminal-emulator') != '':
+                print _('Launching Xterm for advanced customization...')
+                # use x-terminal-emulator if xterm isn't available
+                if os.path.exists("/usr/bin/xterm"):
+                    os.popen('export HOME=/root ; xterm -bg black -fg white -rightbar -title \"Reconstructor Terminal\" -e /tmp/reconstructor-terminal.sh')
+                else:
+                    os.popen('export HOME=/root ; x-terminal-emulator -e /tmp/reconstructor-terminal.sh')
+            else:
+                print _('Error: no valid terminal found')
+                gtk.main_quit()
+                sys.exit(1)
 
             # restore wgetrc
             print _("Restoring wgetrc configuration...")
@@ -469,7 +469,7 @@ class Reconstructor:
         except Exception, detail:
             errText = _('Error burning ISO: ')
             print errText, detail
-            pass   
+            pass
 
 
     def calculateIsoSize(self):
@@ -487,19 +487,19 @@ class Reconstructor:
             remaster = commands.getoutput('du -s ' + os.path.join(self.customDir, "remaster/"))
             mRemaster = r.match(remaster)
             remasterSize = int(mRemaster.group(1))
-	    print "remasterSize: %d" % remasterSize
+            print "remasterSize: %d" % remasterSize
             # subtract squashfs root
             if os.path.exists(os.path.join(self.customDir, "remaster/casper/filesystem.squashfs")):
                 squash = commands.getoutput('du -s ' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs"))
                 mSquash = r.match(squash)
                 squashSize = int(mSquash.group(1))
-	    	print "squashSize: %d" % squashSize
+                print "squashSize: %d" % squashSize
             remasterSize -= squashSize
             # get size of root dir
             root = commands.getoutput('du -s ' + os.path.join(self.customDir, "root/"))
             mRoot = r.match(root)
-            rootSize = int(mRoot.group(1))		
-	    print "rootSize: %d" % rootSize
+            rootSize = int(mRoot.group(1))
+            print "rootSize: %d" % rootSize
             # divide root size to simulate squash compression
             self.wTree.get_widget("labelSoftwareIsoSize").set_text( '~ ' + str(int(round((remasterSize + (rootSize/3.185))/1024))) + ' MB')
             self.setDefaultCursor()
@@ -509,7 +509,7 @@ class Reconstructor:
         except Exception, detail:
             errText = _("Error calculating estimated iso size: ")
             print errText, detail
-            pass    
+            pass
 
     def startInteractiveEdit(self):
         print _('Beginning Interactive Editing...')
@@ -556,7 +556,7 @@ class Reconstructor:
             self.setDefaultCursor()
             errText = _('Error clearing interactive settings: ')
             print errText, detail
-            pass  
+            pass
 
     def on_buttonBack_clicked(self, widget):
         # HACK: back pressed so change buttonNext text
@@ -566,8 +566,8 @@ class Reconstructor:
         if self.wTree.get_widget("notebookWizard").get_current_page() == 0:
             self.wTree.get_widget("buttonBack").hide()
         # check for disc type and move to proper locations
-        elif self.wTree.get_widget("notebookWizard").get_current_page() == self.pageFinish:           
-            self.setPage(self.pageLiveBuild)            
+        elif self.wTree.get_widget("notebookWizard").get_current_page() == self.pageFinish:
+            self.setPage(self.pageLiveBuild)
         else:
             self.wTree.get_widget("notebookWizard").prev_page()
 
@@ -624,7 +624,7 @@ class Reconstructor:
             self.wTree.get_widget("entryLiveIsoFilename").set_text(isoDlg.get_filename())
             isoDlg.hide()
         elif response == gtk.RESPONSE_CANCEL :
-            isoDlg.destroy()  
+            isoDlg.destroy()
 
     def on_checkbuttonBuildIso_toggled(self, widget):
         if self.wTree.get_widget("checkbuttonBuildIso").get_active() == True:
@@ -632,7 +632,7 @@ class Reconstructor:
             self.wTree.get_widget("tableLiveCd").show()
         else:
             # hide filename entry
-            self.wTree.get_widget("tableLiveCd").hide()   
+            self.wTree.get_widget("tableLiveCd").hide()
 
     def on_buttonSoftwareCalculateIsoSize_clicked(self, widget):
         self.setBusyCursor()
@@ -661,20 +661,20 @@ class Reconstructor:
             # clear settings
             gobject.idle_add(self.clearInteractiveSettings)
         else:
-            warnDlg.destroy()      
+            warnDlg.destroy()
 
     def on_buttonCustomizeLaunchTerminal_clicked(self, widget):
         self.launchTerminal()
 
     def on_buttonBurnIso_clicked(self, widget):
-        self.burnIso()       
- 
+        self.burnIso()
+
     def saveSetupInfo(self):
         # do setup - check and create dirs as needed
         print _("INFO: Saving working directory information...")
         self.customDir = self.wTree.get_widget("entryWorkingDir").get_text()
-	os.system("mkdir -p ~/.linuxmint/mintConstructor")
-	os.system("echo \"" + self.customDir + "\" > ~/.linuxmint/mintConstructor/currentProject")
+        os.system("mkdir -p ~/.linuxmint/mintConstructor")
+        os.system("echo \"" + self.customDir + "\" > ~/.linuxmint/mintConstructor/currentProject")
         self.createRemasterDir = self.wTree.get_widget("checkbuttonCreateRemaster").get_active()
         self.createCustomRoot = self.wTree.get_widget("checkbuttonCreateRoot").get_active()
         self.createInitrdRoot = self.wTree.get_widget("checkbuttonCreateInitRd").get_active()
@@ -799,8 +799,8 @@ class Reconstructor:
             os.popen('chmod 6755 \"' + os.path.join(self.customDir, "root/usr/bin/sudo") + '\"')
             os.popen('chmod 0440 \"' + os.path.join(self.customDir, "root/etc/sudoers") + '\"')
             print _("Finished extracting squashfs root...")
-	    if os.path.exists("/usr/bin/aplay"):
-	        os.system("/usr/bin/aplay /usr/lib/linuxmint/mintConstructor/done.wav")
+            if os.path.exists("/usr/bin/aplay"):
+                os.system("/usr/bin/aplay /usr/lib/linuxmint/mintConstructor/done.wav")
 
         # initrd dir
         if self.createInitrdRoot == True:
@@ -837,8 +837,8 @@ class Reconstructor:
 
             # extract initrd
             print _("Extracting Initial Ram Disk (initrd)...")
-	    if os.path.exists(self.mountDir + '/casper/initrd.lz'):
-	        os.popen('cd \"' + os.path.join(self.customDir, "initrd/") + '\"; lzma -dc -S .lz ' + self.mountDir + '/casper/initrd.lz | cpio -id')
+            if os.path.exists(self.mountDir + '/casper/initrd.lz'):
+                os.popen('cd \"' + os.path.join(self.customDir, "initrd/") + '\"; lzma -dc -S .lz ' + self.mountDir + '/casper/initrd.lz | cpio -id')
             elif os.path.exists(self.mountDir + '/casper/initrd.gz'):
                 os.popen('cd \"' + os.path.join(self.customDir, "initrd/") + '\"; cat ' + self.mountDir + '/casper/initrd.gz | gzip -d | cpio -i')
             # umount cdrom
@@ -906,21 +906,21 @@ class Reconstructor:
                 print _("Creating ISO...")
                 # add disc id
                 #os.popen('echo \"Built by Reconstructor ' + self.appVersion + ' - Rev ' + self.updateId + ' (c) Reconstructor Team, 2006 - http://reconstructor.aperantis.com\" > \"' + os.path.join(self.customDir, "remaster/.disc_id") + '\"')
-		# update manifest files
-		os.system("/usr/lib/linuxmint/mintConstructor/updateManifest.sh " + self.customDir)
+                # update manifest files
+                os.system("/usr/lib/linuxmint/mintConstructor/updateManifest.sh " + self.customDir)
                 # update md5
                 print _("Updating md5 sums...")
                 os.system('rm ' + os.path.join(self.customDir, "remaster/") + ' md5sum.txt')
                 os.popen('cd \"' + os.path.join(self.customDir, "remaster/") + '\"; ' + 'find . -type f -print0 | xargs -0 md5sum > md5sum.txt')
-		#Remove md5sum.txt from md5sum.txt
-		os.system("sed -e '/md5sum.txt/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
-		os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
-		#Remove boot.cat from md5sum.txt
-		os.system("sed -e '/boot.cat/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
-		os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
-		#Remove isolinux.bin from md5sum.txt
-		os.system("sed -e '/isolinux.bin/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
-		os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
+                #Remove md5sum.txt from md5sum.txt
+                os.system("sed -e '/md5sum.txt/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
+                os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
+                #Remove boot.cat from md5sum.txt
+                os.system("sed -e '/boot.cat/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
+                os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
+                #Remove isolinux.bin from md5sum.txt
+                os.system("sed -e '/isolinux.bin/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
+                os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
                 # remove existing iso
                 if os.path.exists(self.buildLiveCdFilename):
                     print _("Removing existing ISO...")
@@ -957,8 +957,8 @@ class Reconstructor:
         self.checkEnableBurnIso()
 
         print "Build Complete..."
-	if os.path.exists("/usr/bin/aplay"):
-		os.system("/usr/bin/aplay /usr/lib/linuxmint/mintConstructor/done.wav")
+        if os.path.exists("/usr/bin/aplay"):
+            os.system("/usr/bin/aplay /usr/lib/linuxmint/mintConstructor/done.wav")
 
 # ---------- MAIN ----------
 
