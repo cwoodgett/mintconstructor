@@ -8,6 +8,7 @@ import locale
 import gettext
 import re
 import commands
+import datetime
 
 try:
     import pygtk
@@ -32,37 +33,22 @@ class Reconstructor:
         self.gladefile = '/usr/lib/linuxmint/mintConstructor/mintConstructor.glade'
         self.iconFile = '/usr/lib/linuxmint/mintConstructor/icon.png'
 
-        self.appName = "Live CD Remastering Tool (Ubuntu/Mint)"
-        self.codeName = " \"Chartres\" "
-        self.devInProgress = False
-        self.updateId = "321"
-        self.devRevision = "071211"
-        self.appVersion = "2.7"
+        self.appName = "MintConstructor"        
         self.mountDir = '/media/cdrom'
         self.tmpDir = "tmp"
         self.tmpPackageDir = "tmp_packages"
-        # type of disc (live/alt)
-        self.altBaseTypeStandard = 0
-        self.altBaseTypeServer = 1
-        self.altBaseTypeDesktop = 2
         self.customDir = ""
-        self.createRemasterDir = False
-        self.createCustomRoot = False
-        self.createInitrdRoot = False
+        self.createNewProject = False        
         self.isoFilename = ""
-        self.buildLiveCdFilename = ''
-        self.setupComplete = False
-        self.manualInstall = False
+        self.buildLiveCdFilename = ''        
         self.watch = gtk.gdk.Cursor(gtk.gdk.WATCH)
         self.working = None
-        self.workingDlg = None
-        self.runningDebug = False
+        self.workingDlg = None        
         self.interactiveEdit = False
         self.pageLiveSetup = 0
         self.pageLiveCustomize = 1
         self.pageLiveBuild = 2
-        self.pageFinish = 3
-        self.enableExperimental = False
+        self.pageFinish = 3        
         self.gnomeBinPath = '/usr/bin/gnome-session'
         self.f = sys.stdout
         self.treeModel = None
@@ -82,11 +68,15 @@ class Reconstructor:
         gettext.install(APPDOMAIN, LANGDIR, unicode=1)
 
         # i18n for menu item
-        menuName = _("Live CD Remastering Tool")
-        menuComment = _("Make changes to an ISO or a liveCD")
+        menuName = _("Live Remastering Tool")
+        menuComment = _("Make changes to an ISO or a live media")
 
         # setup glade widget tree
+        print ""
+        print "Setting up the GUI..."
         self.wTree = gtk.glade.XML(self.gladefile, domain='reconstructor')
+        print ""
+        print ""
 
 
         # check for user
@@ -97,10 +87,8 @@ class Reconstructor:
         dic = { "on_buttonNext_clicked" : self.on_buttonNext_clicked,
             "on_buttonBack_clicked" : self.on_buttonBack_clicked,
             "on_buttonBrowseWorkingDir_clicked" : self.on_buttonBrowseWorkingDir_clicked,
-            "on_buttonBrowseIsoFilename_clicked" : self.on_buttonBrowseIsoFilename_clicked,
-            "on_checkbuttonBuildIso_toggled" : self.on_checkbuttonBuildIso_toggled,
-            "on_buttonBrowseLiveCdFilename_clicked" : self.on_buttonBrowseLiveCdFilename_clicked,
-            "on_buttonSoftwareCalculateIsoSize_clicked" : self.on_buttonSoftwareCalculateIsoSize_clicked,
+            "on_buttonBrowseIsoFilename_clicked" : self.on_buttonBrowseIsoFilename_clicked,            
+            "on_buttonBrowseLiveCdFilename_clicked" : self.on_buttonBrowseLiveCdFilename_clicked,            
             "on_buttonInteractiveEditLaunch_clicked" : self.on_buttonInteractiveEditLaunch_clicked,
             "on_buttonInteractiveClear_clicked" : self.on_buttonInteractiveClear_clicked,
             "on_buttonCustomizeLaunchTerminal_clicked" : self.on_buttonCustomizeLaunchTerminal_clicked,
@@ -119,39 +107,23 @@ class Reconstructor:
             os.makedirs(self.mountDir)
 
         # set app title
-        if self.devInProgress:
-            self.wTree.get_widget("windowMain").set_title(self.appName + self.codeName + "  Build " + self.devRevision)
-        else:
-            self.wTree.get_widget("windowMain").set_title(self.appName)
+        self.wTree.get_widget("windowMain").set_title(self.appName)
 
         # hide back button initially
         self.wTree.get_widget("buttonBack").hide()
-        # set default working directory path
+        
+        # set values
         if os.path.exists(os.environ['HOME'] + "/.linuxmint/mintConstructor/currentProject"):
             currentProject = commands.getoutput("cat ~/.linuxmint/mintConstructor/currentProject")
         else:
             currentProject = os.environ['HOME']
-        self.wTree.get_widget("entryWorkingDir").set_text(currentProject)
-        # set default iso filenames
-        self.wTree.get_widget("entryLiveIsoFilename").set_text(os.path.join(currentProject, "LinuxMint-9-DEV-xxx.iso"))
-        # set default descriptions
-        cdDesc = _('Linux Mint 10 Julia')
-        self.wTree.get_widget("entryLiveCdDescription").set_text(cdDesc)
-        # set default cd architectures
-        self.wTree.get_widget("comboboxLiveCdArch").set_active(0)
-
-    def checkSetup(self):
-        setup = False
-        if self.createRemasterDir == True:
-            setup = True
-        elif self.createCustomRoot == True:
-            setup = True
-        elif self.createInitrdRoot == True:
-            setup = True
+        if os.path.exists(os.environ['HOME'] + "/.linuxmint/mintConstructor/currentDescription"):
+            currentDescription = commands.getoutput("cat ~/.linuxmint/mintConstructor/currentDescription")
         else:
-            # nothing to be done
-            setup = False
-        return setup
+            currentDescription = "Linux Mint <VERSION> <EDITION> <XX>-bit"
+            
+        self.wTree.get_widget("entryWorkingDir").set_text(currentProject)        
+        self.wTree.get_widget("entryLiveCdDescription").set_text(currentDescription)                         
 
     def checkCustomDir(self):
         if self.customDir == "":
@@ -184,22 +156,16 @@ class Reconstructor:
         # check for existing directories; if not warn...
         remasterExists = None
         rootExists = None
-        initrdExists = None
         if os.path.exists(os.path.join(self.customDir, "remaster")) == False:
-            if self.wTree.get_widget("checkbuttonCreateRemaster").get_active() == False:
+            if self.wTree.get_widget("radiobutton_new_project").get_active() == False:
                 remasterExists = False
         if os.path.exists(os.path.join(self.customDir, "root")) == False:
-            if self.wTree.get_widget("checkbuttonCreateRoot").get_active() == False:
+            if self.wTree.get_widget("radiobutton_new_project").get_active() == False:
                 rootExists = False
-        if os.path.exists(os.path.join(self.customDir, "initrd")) == False:
-            if self.wTree.get_widget("checkbuttonCreateInitRd").get_active() == False:
-                initrdExists = False
         workingDirOk = True
         if remasterExists == False:
             workingDirOk = False
         if rootExists == False:
-            workingDirOk = False
-        if initrdExists == False:
             workingDirOk = False
         if workingDirOk == False:
             warnDlg = gtk.Dialog(title=self.appName, parent=None, flags=0, buttons=(gtk.STOCK_OK, gtk.RESPONSE_OK))
@@ -211,28 +177,22 @@ class Reconstructor:
             lblWarningText = _("  <b>Please fix the errors below before continuing.</b>   ")
             lblRemasterText = _("  There is no remaster directory.  Please select create remaster option.  ")
             lblRootText = _("  There is no root directory.  Please select create root option.  ")
-            lblInitrdText = _("  There is no initrd directory.  Please select create initrd option.  ")
             labelWarning = gtk.Label(lblWarningText)
             labelRemaster = gtk.Label(lblRemasterText)
             labelRoot = gtk.Label(lblRootText)
-            labelInitrd = gtk.Label(lblInitrdText)
 
             labelWarning.set_use_markup(True)
             labelRemaster.set_use_markup(True)
             labelRoot.set_use_markup(True)
-            labelInitrd.set_use_markup(True)
             warnDlg.vbox.pack_start(labelWarning)
             warnDlg.vbox.pack_start(labelRemaster)
             warnDlg.vbox.pack_start(labelRoot)
-            warnDlg.vbox.pack_start(labelInitrd)
             labelWarning.show()
 
             if remasterExists == False:
                 labelRemaster.show()
             if rootExists == False:
                 labelRoot.show()
-            if initrdExists == False:
-                labelInitrd.show()
 
             #warnDlg.show()
             response = warnDlg.run()
@@ -245,9 +205,6 @@ class Reconstructor:
         return workingDirOk
 
     def checkPage(self, pageNum):
-        if self.runningDebug == True:
-            print "CheckPage: " + str(pageNum)
-            #print " "
         if pageNum == self.pageLiveSetup:
             # setup
             self.saveSetupInfo()
@@ -255,7 +212,7 @@ class Reconstructor:
             self.interactiveEdit = False
             # check for custom dir
             if self.checkCustomDir() == True:
-                if self.checkSetup() == True:
+                if self.createNewProject == True:
                     if self.checkWorkingDir() == True:
                         warnDlg = gtk.Dialog(title=self.appName, parent=None, flags=0, buttons=    (gtk.STOCK_NO, gtk.RESPONSE_CANCEL, gtk.STOCK_YES, gtk.RESPONSE_OK))
                         warnDlg.set_icon_from_file(self.iconFile)
@@ -279,8 +236,8 @@ class Reconstructor:
                             self.setBusyCursor()
                             gobject.idle_add(self.setupWorkingDirectory)
                             # calculate iso size
-                            gobject.idle_add(self.calculateIsoSize)
-                            #self.calculateIsoSize()
+                            gobject.idle_add(self.readyUp)
+                            #self.readyUp()
                             return True
                         else:
                             warnDlg.destroy()
@@ -291,8 +248,8 @@ class Reconstructor:
                     if self.checkWorkingDir() == True:
                         self.setBusyCursor()
                         # calculate iso size in the background
-                        gobject.idle_add(self.calculateIsoSize)
-                        #self.calculateIsoSize()
+                        gobject.idle_add(self.readyUp)
+                        #self.readyUp()
                         return True
                     else:
                         return False
@@ -321,6 +278,15 @@ class Reconstructor:
                     warnDlg.destroy()
                     return False
         elif pageNum == self.pageLiveCustomize:
+            d = datetime.datetime.now()
+            filename = d.strftime("dev-%Y%m%d-%H%M") + ".iso"
+            self.wTree.get_widget("entryLiveIsoFilename").set_text(filename)
+
+            if os.path.exists(os.environ['HOME'] + "/.linuxmint/mintConstructor/currentDescription"):
+                currentDescription = commands.getoutput("cat ~/.linuxmint/mintConstructor/currentDescription")
+            else:
+                currentDescription = "Linux Mint <VERSION> <EDITION> <XX>-bit"
+            self.wTree.get_widget("entryLiveCdDescription").set_text(currentDescription)
             self.setPage(self.pageLiveBuild)
             self.checkEnableBurnIso()
             return True
@@ -472,43 +438,12 @@ class Reconstructor:
             pass
 
 
-    def calculateIsoSize(self):
-        try:
-            # reset current size
-            self.wTree.get_widget("labelSoftwareIsoSize").set_text("")
-            totalSize = None
-            remasterSize = 0
-            rootSize = 0
-            squashSize = 0
-            print _('Calculating Live ISO Size...')
-            # regex for extracting size
-            r = re.compile('(\d+)\s', re.IGNORECASE)
-            # get size of remaster dir - use du -s (it's faster)
-            remaster = commands.getoutput('du -s ' + os.path.join(self.customDir, "remaster/"))
-            mRemaster = r.match(remaster)
-            remasterSize = int(mRemaster.group(1))
-            print "remasterSize: %d" % remasterSize
-            # subtract squashfs root
-            if os.path.exists(os.path.join(self.customDir, "remaster/casper/filesystem.squashfs")):
-                squash = commands.getoutput('du -s ' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs"))
-                mSquash = r.match(squash)
-                squashSize = int(mSquash.group(1))
-                print "squashSize: %d" % squashSize
-            remasterSize -= squashSize
-            # get size of root dir
-            root = commands.getoutput('du -s ' + os.path.join(self.customDir, "root/"))
-            mRoot = r.match(root)
-            rootSize = int(mRoot.group(1))
-            print "rootSize: %d" % rootSize
-            # divide root size to simulate squash compression
-            self.wTree.get_widget("labelSoftwareIsoSize").set_text( '~ ' + str(int(round((remasterSize + (rootSize/3.185))/1024))) + ' MB')
+    def readyUp(self):
+        try:                                        
             self.setDefaultCursor()
-            # set page here - since this is run on a background thread,
-            # the next page will show too quickly if set in self.checkPage()
             self.setPage(self.pageLiveCustomize)
-        except Exception, detail:
-            errText = _("Error calculating estimated iso size: ")
-            print errText, detail
+        except Exception, detail:            
+            print detail
             pass
 
     def startInteractiveEdit(self):
@@ -624,19 +559,7 @@ class Reconstructor:
             self.wTree.get_widget("entryLiveIsoFilename").set_text(isoDlg.get_filename())
             isoDlg.hide()
         elif response == gtk.RESPONSE_CANCEL :
-            isoDlg.destroy()
-
-    def on_checkbuttonBuildIso_toggled(self, widget):
-        if self.wTree.get_widget("checkbuttonBuildIso").get_active() == True:
-            # show filename, description, etc. entry
-            self.wTree.get_widget("tableLiveCd").show()
-        else:
-            # hide filename entry
-            self.wTree.get_widget("tableLiveCd").hide()
-
-    def on_buttonSoftwareCalculateIsoSize_clicked(self, widget):
-        self.setBusyCursor()
-        gobject.idle_add(self.calculateIsoSize)
+            isoDlg.destroy()    
 
     def on_buttonInteractiveEditLaunch_clicked(self, widget):
         self.startInteractiveEdit()
@@ -675,22 +598,18 @@ class Reconstructor:
         self.customDir = self.wTree.get_widget("entryWorkingDir").get_text()
         os.system("mkdir -p ~/.linuxmint/mintConstructor")
         os.system("echo \"" + self.customDir + "\" > ~/.linuxmint/mintConstructor/currentProject")
-        self.createRemasterDir = self.wTree.get_widget("checkbuttonCreateRemaster").get_active()
-        self.createCustomRoot = self.wTree.get_widget("checkbuttonCreateRoot").get_active()
-        self.createInitrdRoot = self.wTree.get_widget("checkbuttonCreateInitRd").get_active()
+        self.createNewProject = self.wTree.get_widget("radiobutton_new_project").get_active()        
         self.isoFilename = self.wTree.get_widget("entryIsoFilename").get_text()
         # debug
         print "Custom Directory: " + str(self.customDir)
-        print "Create Remaster Directory: " + str(self.createRemasterDir)
-        print "Create Custom Root: " + str(self.createCustomRoot)
-        print "Create Initrd Root: " + str(self.createInitrdRoot)
+        print "Create New Project: " + str(self.createNewProject)        
         print "ISO Filename: " + str(self.isoFilename)
 
 # ---------- Setup ---------- #
     def setupWorkingDirectory(self):
         print _("INFO: Setting up working directory...")
         # remaster dir
-        if self.createRemasterDir == True:
+        if self.createNewProject:
             # check for existing directories and remove if necessary
             #if os.path.exists(os.path.join(self.customDir, "remaster")):
             #    print _("INFO: Removing existing Remaster directory...")
@@ -734,7 +653,7 @@ class Reconstructor:
             # unmount iso/cd-rom
             os.popen("umount " + self.mountDir)
         # custom root dir
-        if self.createCustomRoot == True:
+        if self.createNewProject:
             #if os.path.exists(os.path.join(self.customDir, "root")):
             #    print _("INFO: Removing existing Custom Root directory...")
 
@@ -802,48 +721,6 @@ class Reconstructor:
             if os.path.exists("/usr/bin/aplay"):
                 os.system("/usr/bin/aplay /usr/lib/linuxmint/mintConstructor/done.wav")
 
-        # initrd dir
-        if self.createInitrdRoot == True:
-            if os.path.exists(os.path.join(self.customDir, "initrd")):
-                print _("INFO: Removing existing Initrd directory...")
-                os.popen('rm -Rf \"' + os.path.join(self.customDir, "initrd/") + '\"')
-            print _("INFO: Creating Initrd directory...")
-            os.makedirs(os.path.join(self.customDir, "initrd"))
-            # check for iso
-            if self.isoFilename == "":
-                mntDlg = gtk.Dialog(title=self.appName, parent=None, flags=0, buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OK, gtk.RESPONSE_OK))
-                mntDlg.set_icon_from_file(self.iconFile)
-                mntDlg.vbox.set_spacing(10)
-                labelSpc = gtk.Label(" ")
-                mntDlg.vbox.pack_start(labelSpc)
-                labelSpc.show()
-                lblText = _("  <b>Please insert the Live CD and click OK</b>  ")
-                label = gtk.Label(lblText)
-                label.set_use_markup(True)
-                mntDlg.vbox.pack_start(label)
-                label.show()
-                response = mntDlg.run()
-                if response == gtk.RESPONSE_OK:
-                    print _("Using Live CD for initrd...")
-                    mntDlg.destroy()
-                    os.popen("mount " + self.mountDir)
-                else:
-                    mntDlg.destroy()
-                    self.setDefaultCursor()
-                    return
-            else:
-                print _("Using ISO for initrd...")
-                os.popen('mount -o loop \"' + self.isoFilename + '\" ' + self.mountDir)
-
-            # extract initrd
-            print _("Extracting Initial Ram Disk (initrd)...")
-            if os.path.exists(self.mountDir + '/casper/initrd.lz'):
-                os.popen('cd \"' + os.path.join(self.customDir, "initrd/") + '\"; lzma -dc -S .lz ' + self.mountDir + '/casper/initrd.lz | cpio -id')
-            elif os.path.exists(self.mountDir + '/casper/initrd.gz'):
-                os.popen('cd \"' + os.path.join(self.customDir, "initrd/") + '\"; cat ' + self.mountDir + '/casper/initrd.gz | gzip -d | cpio -i')
-            # umount cdrom
-            os.popen("umount " + self.mountDir)
-
         # load comboboxes for customization
         #self.hideWorking()
         self.setDefaultCursor()
@@ -854,92 +731,77 @@ class Reconstructor:
 
 # ---------- Build ---------- #
     def build(self):
+        # Clean remaster/casper directory
+        os.popen("rm -rf %s/remaster/casper/*" % self.customDir)
+        
+        # Update kernel and initrd
+        os.popen("cp %(directory)s/root/vmlinuz %(directory)s/remaster/casper/vmlinuz" % {'directory':self.customDir})
+        os.popen("cp %(directory)s/root/initrd.img %(directory)s/remaster/casper/initrd.lz" % {'directory':self.customDir})
+                
         # check for custom mksquashfs (for multi-threading, new features, etc.)
         mksquashfs = ''
         if commands.getoutput('echo $MKSQUASHFS') != '':
             mksquashfs = commands.getoutput('echo $MKSQUASHFS')
             print 'Using alternative mksquashfs: ' + ' Version: ' + commands.getoutput(mksquashfs + ' -version')
-        # setup build vars
-        self.buildInitrd = self.wTree.get_widget("checkbuttonBuildInitrd").get_active()
-        self.buildSquashRoot = self.wTree.get_widget("checkbuttonBuildSquashRoot").get_active()
-        self.buildIso = self.wTree.get_widget("checkbuttonBuildIso").get_active()
+        # setup build vars                
         self.buildLiveCdFilename = self.wTree.get_widget("entryLiveIsoFilename").get_text()
-        self.LiveCdDescription = "Linux Mint x yyy"
-        self.LiveCdArch = self.wTree.get_widget("comboboxLiveCdArch").get_active_text()
+        self.LiveCdDescription = "Linux Mint"        
         self.hfsMap = os.getcwd() + "/lib/hfs.map"
 
         print " "
         print _("INFO: Starting Build...")
         print " "
-        # build initrd
-        if self.buildInitrd == True:
-            # create initrd
-            if os.path.exists(os.path.join(self.customDir, "initrd")):
-                print _("Creating Initrd...")
-                #os.popen('cd \"' + os.path.join(self.customDir, "initrd/") + '\"; find | cpio -H newc -o | gzip > ../initrd.gz' + '; mv -f ../initrd.gz \"' + os.path.join(self.customDir, "remaster/casper/initrd.gz") + '\"')
-                os.popen('cd \"' + os.path.join(self.customDir, "initrd/") + '\"; find | cpio -H newc -o | lzma -7 > ../initrd.lz' + '; mv -f ../initrd.lz \"' + os.path.join(self.customDir, "remaster/casper/initrd.lz") + '\"')
 
-        # build squash root
-        if self.buildSquashRoot == True:
-            # create squashfs root
-            if os.path.exists(os.path.join(self.customDir, "root")):
-                print _("Creating SquashFS root...")
-                print _("Updating File lists...")
-                q = ' dpkg-query -W --showformat=\'${Package} ${Version}\n\' '
-                os.popen('chroot \"' + os.path.join(self.customDir, "root/") + '\"' + q + ' > \"' + os.path.join(self.customDir, "remaster/casper/filesystem.manifest") + '\"' )
-                os.popen('cp -f \"' + os.path.join(self.customDir, "remaster/casper/filesystem.manifest") + '\" \"' + os.path.join(self.customDir, "remaster/casper/filesystem.manifest-desktop") + '\"')
-                # check for existing squashfs root
-                if os.path.exists(os.path.join(self.customDir, "remaster/casper/filesystem.squashfs")):
-                    print _("Removing existing SquashFS root...")
-                    os.popen('rm -Rf \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
-                print _("Building SquashFS root...")
-                # check for alternate mksquashfs
-                if mksquashfs == '':
-                    os.system(self.timeCmd + ' mksquashfs \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
-                else:
-                    os.system(self.timeCmd + ' ' + mksquashfs + ' \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
+        # build squash root                
+        if os.path.exists(os.path.join(self.customDir, "root")):
+            print _("Creating SquashFS root...")
+            print _("Updating File lists...")
+            q = ' dpkg-query -W --showformat=\'${Package} ${Version}\n\' '
+            os.popen('chroot \"' + os.path.join(self.customDir, "root/") + '\"' + q + ' > \"' + os.path.join(self.customDir, "remaster/casper/filesystem.manifest") + '\"' )
+            os.popen('cp -f \"' + os.path.join(self.customDir, "remaster/casper/filesystem.manifest") + '\" \"' + os.path.join(self.customDir, "remaster/casper/filesystem.manifest-desktop") + '\"')
+            # check for existing squashfs root
+            if os.path.exists(os.path.join(self.customDir, "remaster/casper/filesystem.squashfs")):
+                print _("Removing existing SquashFS root...")
+                os.popen('rm -Rf \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
+            print _("Building SquashFS root...")
+            # check for alternate mksquashfs
+            if mksquashfs == '':
+                os.system(self.timeCmd + ' mksquashfs \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
+            else:
+                os.system(self.timeCmd + ' ' + mksquashfs + ' \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
 
-        # build iso
-        if self.buildIso == True:
-            # create iso
-            if os.path.exists(os.path.join(self.customDir, "remaster")):
-                print _("Creating ISO...")
-                # add disc id
-                #os.popen('echo \"Built by Reconstructor ' + self.appVersion + ' - Rev ' + self.updateId + ' (c) Reconstructor Team, 2006 - http://reconstructor.aperantis.com\" > \"' + os.path.join(self.customDir, "remaster/.disc_id") + '\"')
-                # update manifest files
-                os.system("/usr/lib/linuxmint/mintConstructor/updateManifest.sh " + self.customDir)
-                # update md5
-                print _("Updating md5 sums...")
-                os.system('rm ' + os.path.join(self.customDir, "remaster/") + ' md5sum.txt')
-                os.popen('cd \"' + os.path.join(self.customDir, "remaster/") + '\"; ' + 'find . -type f -print0 | xargs -0 md5sum > md5sum.txt')
-                #Remove md5sum.txt from md5sum.txt
-                os.system("sed -e '/md5sum.txt/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
-                os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
-                #Remove boot.cat from md5sum.txt
-                os.system("sed -e '/boot.cat/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
-                os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
-                #Remove isolinux.bin from md5sum.txt
-                os.system("sed -e '/isolinux.bin/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
-                os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
-                # remove existing iso
-                if os.path.exists(self.buildLiveCdFilename):
-                    print _("Removing existing ISO...")
-                    os.popen('rm -Rf \"' + self.buildLiveCdFilename + '\"')
-                # build
-                # check for description - replace if necessary
-                if self.wTree.get_widget("entryLiveCdDescription").get_text() != "":
-                    self.LiveCdDescription = self.wTree.get_widget("entryLiveCdDescription").get_text()
+        # build iso       
+        if os.path.exists(os.path.join(self.customDir, "remaster")):
+            print _("Creating ISO...")
+            # update manifest files
+            os.system("/usr/lib/linuxmint/mintConstructor/updateManifest.sh " + self.customDir)
+            # update md5
+            print _("Updating md5 sums...")
+            os.system('rm ' + os.path.join(self.customDir, "remaster/") + ' md5sum.txt')
+            os.popen('cd \"' + os.path.join(self.customDir, "remaster/") + '\"; ' + 'find . -type f -print0 | xargs -0 md5sum > md5sum.txt')
+            #Remove md5sum.txt from md5sum.txt
+            os.system("sed -e '/md5sum.txt/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
+            os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
+            #Remove boot.cat from md5sum.txt
+            os.system("sed -e '/boot.cat/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
+            os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
+            #Remove isolinux.bin from md5sum.txt
+            os.system("sed -e '/isolinux.bin/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
+            os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
+            # remove existing iso
+            if os.path.exists(self.buildLiveCdFilename):
+                print _("Removing existing ISO...")
+                os.popen('rm -Rf \"' + self.buildLiveCdFilename + '\"')
+            # build
+            # check for description - replace if necessary
+            if self.wTree.get_widget("entryLiveCdDescription").get_text() != "":
+                self.LiveCdDescription = self.wTree.get_widget("entryLiveCdDescription").get_text()
+                
+            os.system("echo \"" + self.LiveCdDescription + "\" > ~/.linuxmint/mintConstructor/currentDescription")
 
-                # build iso according to architecture
-                #if self.LiveCdArch == "x86":
-                print _("Building x86 ISO...")
-                os.popen(self.timeCmd + ' mkisofs -o \"' + self.buildLiveCdFilename + '\" -b \"isolinux/isolinux.bin\" -c \"isolinux/boot.cat\" -no-emul-boot -boot-load-size 4 -boot-info-table -V \"' + self.LiveCdDescription + '\" -cache-inodes -r -J -l \"' + os.path.join(self.customDir, "remaster") + '\"')
-                #elif self.LiveCdArch == "PowerPC":
-                #    print _("Building PowerPC ISO...")
-                #    os.popen(self.timeCmd + ' mkisofs  -r -V \"' + self.LiveCdDescription + '\" --netatalk -hfs -probe -map \"' + self.hfsMap + '\" -chrp-boot -iso-level 2 -part -no-desktop -hfs-bless ' + '\"' + os.path.join(self.customDir, "remaster/install") + '\" -o \"' + self.buildLiveCdFilename + '\" \"' + os.path.join(self.customDir, "remaster") + '\"')
-                #elif self.LiveCdArch == "x86_64":
-                 #   print _("Building x86_64 ISO...")
-                  #  os.popen(self.timeCmd + ' mkisofs -r -o \"' + self.buildLiveCdFilename + '\" -b \"isolinux/isolinux.bin\" -c \"isolinux/boot.cat\" -no-emul-boot -V \"' + self.LiveCdDescription + '\" -J -l \"' + os.path.join(self.customDir, "remaster") + '\"')
+            # build iso according to architecture                
+            print _("Building ISO...")
+            os.popen(self.timeCmd + ' mkisofs -o \"' + self.buildLiveCdFilename + '\" -b \"isolinux/isolinux.bin\" -c \"isolinux/boot.cat\" -no-emul-boot -boot-load-size 4 -boot-info-table -V \"' + self.LiveCdDescription + '\" -cache-inodes -r -J -l \"' + os.path.join(self.customDir, "remaster") + '\"')                
 
         self.setDefaultCursor()
         self.setPage(self.pageFinish)
