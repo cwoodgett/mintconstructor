@@ -280,7 +280,7 @@ class Reconstructor:
         elif pageNum == self.pageLiveCustomize:
             d = datetime.datetime.now()
             filename = d.strftime("dev-%Y%m%d-%H%M") + ".iso"
-            self.wTree.get_widget("entryLiveIsoFilename").set_text(filename)
+            self.wTree.get_widget("entryLiveIsoFilename").set_text(self.customDir + "/" + filename)
 
             if os.path.exists(os.environ['HOME'] + "/.linuxmint/mintConstructor/currentDescription"):
                 currentDescription = commands.getoutput("cat ~/.linuxmint/mintConstructor/currentDescription")
