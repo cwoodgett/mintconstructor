@@ -1,3 +1,12 @@
+mintconstructor (3.0.1) julia; urgency=low
+
+  * Doesn't update vmlinuz if there's no new vmlinuz in root
+  * Doesn't update initrd.img if there's no new initrd.img in root
+  * Doesn't remove the content of remaster/casper before building
+  * Updates filesystem.size before building
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri,  14 Jan 2011 11:16:00 +0000
+
 mintconstructor (3.0.0) julia; urgency=low
 
   * Dynamic initrd and vmlinuz

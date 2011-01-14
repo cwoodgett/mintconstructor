@@ -732,11 +732,16 @@ class Reconstructor:
 # ---------- Build ---------- #
     def build(self):
         # Clean remaster/casper directory
-        os.popen("rm -rf %s/remaster/casper/*" % self.customDir)
+        #os.popen("rm -rf %s/remaster/casper/*" % self.customDir)
         
         # Update kernel and initrd
-        os.popen("cp %(directory)s/root/vmlinuz %(directory)s/remaster/casper/vmlinuz" % {'directory':self.customDir})
-        os.popen("cp %(directory)s/root/initrd.img %(directory)s/remaster/casper/initrd.lz" % {'directory':self.customDir})
+        if os.path.exists("%(directory)s/root/vmlinuz" % {'directory':self.customDir}):
+            os.popen("cp %(directory)s/root/vmlinuz %(directory)s/remaster/casper/vmlinuz" % {'directory':self.customDir})
+        if os.path.exists("%(directory)s/root/initrd.img" % {'directory':self.customDir}):
+            os.popen("cp %(directory)s/root/initrd.img %(directory)s/remaster/casper/initrd.lz" % {'directory':self.customDir})
+        
+        #Update filesystem.size
+        os.popen("du -b %(directory)s/root/ 2> /dev/null | tail -1 | awk {'print $1;'} > %(directory)s/remaster/casper/filesystem.size" % {'directory':self.customDir})
                 
         # check for custom mksquashfs (for multi-threading, new features, etc.)
         mksquashfs = ''
