@@ -1,3 +1,11 @@
+mintconstructor (3.0.2) julia; urgency=low
+
+  * Replace mkisofs with genisoimage
+  * Removed timecmd to show more info
+  * Fixed vmlinuz and initrd (when they symlinked with an absolute path mintconstructor was using the host kernel instead of the right one)
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri,  15 Jul 2011 13:39:00 +0000
+
 mintconstructor (3.0.1) julia; urgency=low
 
   * Doesn't update vmlinuz if there's no new vmlinuz in root
