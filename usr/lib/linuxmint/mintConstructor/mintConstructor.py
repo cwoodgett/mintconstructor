@@ -54,9 +54,6 @@ class Reconstructor:
         self.treeModel = None
         self.treeView = None
 
-        # time command for timing operations
-        self.timeCmd = commands.getoutput('which time') + ' -f \"\nBuild Time: %E  CPU: %P\n\"'
-
         APPDOMAIN='reconstructor'
         LANGDIR='lang'
         # locale
@@ -736,9 +733,17 @@ class Reconstructor:
         
         # Update kernel and initrd
         if os.path.exists("%(directory)s/root/vmlinuz" % {'directory':self.customDir}):
-            os.popen("cp %(directory)s/root/vmlinuz %(directory)s/remaster/casper/vmlinuz" % {'directory':self.customDir})
+            vmlinuzpath = commands.getoutput("ls -al %s/root/vmlinuz" % self.customDir).split("/")[-1]            
+            os.popen("cp %(directory)s/root/boot/%(path)s %(directory)s/remaster/casper/vmlinuz" % {'directory':self.customDir, 'path':vmlinuzpath})
+            print "Updating vmlinuz"
+        else:
+            print "WARNING: Not updating vmlinuz!!!"
         if os.path.exists("%(directory)s/root/initrd.img" % {'directory':self.customDir}):
-            os.popen("cp %(directory)s/root/initrd.img %(directory)s/remaster/casper/initrd.lz" % {'directory':self.customDir})
+            initrdpath = commands.getoutput("ls -al %s/root/initrd.img" % self.customDir).split("/")[-1] 
+            os.popen("cp %(directory)s/root/boot/%(path)s %(directory)s/remaster/casper/initrd.lz" % {'directory':self.customDir, 'path':initrdpath})
+            print "Updating initrd"
+        else:
+            print "WARNING: Not updating initrd!!!"
         
         #Update filesystem.size
         os.popen("du -b %(directory)s/root/ 2> /dev/null | tail -1 | awk {'print $1;'} > %(directory)s/remaster/casper/filesystem.size" % {'directory':self.customDir})
@@ -771,9 +776,9 @@ class Reconstructor:
             print _("Building SquashFS root...")
             # check for alternate mksquashfs
             if mksquashfs == '':
-                os.system(self.timeCmd + ' mksquashfs \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
+                os.system('mksquashfs \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
             else:
-                os.system(self.timeCmd + ' ' + mksquashfs + ' \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
+                os.system(mksquashfs + ' \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
 
         # build iso       
         if os.path.exists(os.path.join(self.customDir, "remaster")):
@@ -806,7 +811,7 @@ class Reconstructor:
 
             # build iso according to architecture                
             print _("Building ISO...")
-            os.popen(self.timeCmd + ' mkisofs -o \"' + self.buildLiveCdFilename + '\" -b \"isolinux/isolinux.bin\" -c \"isolinux/boot.cat\" -no-emul-boot -boot-load-size 4 -boot-info-table -V \"' + self.LiveCdDescription + '\" -cache-inodes -r -J -l \"' + os.path.join(self.customDir, "remaster") + '\"')                
+            os.system('genisoimage -o \"' + self.buildLiveCdFilename + '\" -b \"isolinux/isolinux.bin\" -c \"isolinux/boot.cat\" -no-emul-boot -boot-load-size 4 -boot-info-table -V \"' + self.LiveCdDescription + '\" -cache-inodes -r -J -l \"' + os.path.join(self.customDir, "remaster") + '\"')                
 
         self.setDefaultCursor()
         self.setPage(self.pageFinish)
