@@ -114,13 +114,13 @@ class Reconstructor:
             currentProject = commands.getoutput("cat ~/.linuxmint/mintConstructor/currentProject")
         else:
             currentProject = os.environ['HOME']
-        if os.path.exists(os.environ['HOME'] + "/.linuxmint/mintConstructor/currentDescription"):
-            currentDescription = commands.getoutput("cat ~/.linuxmint/mintConstructor/currentDescription")
+        if os.path.exists(os.path.join(self.customDir, "iso_name")):
+            iso_name = commands.getoutput("cat %s/iso_name" % self.customDir)
         else:
-            currentDescription = "Linux Mint <VERSION> <EDITION> <XX>-bit"
+            iso_name = "Linux Mint <VERSION> <EDITION> <XX>-bit"
             
         self.wTree.get_widget("entryWorkingDir").set_text(currentProject)        
-        self.wTree.get_widget("entryLiveCdDescription").set_text(currentDescription)                         
+        self.wTree.get_widget("entryLiveCdDescription").set_text(iso_name)                         
 
     def checkCustomDir(self):
         if self.customDir == "":
@@ -279,11 +279,11 @@ class Reconstructor:
             filename = d.strftime("dev-%Y%m%d-%H%M") + ".iso"
             self.wTree.get_widget("entryLiveIsoFilename").set_text(self.customDir + "/" + filename)
 
-            if os.path.exists(os.environ['HOME'] + "/.linuxmint/mintConstructor/currentDescription"):
-                currentDescription = commands.getoutput("cat ~/.linuxmint/mintConstructor/currentDescription")
+            if os.path.exists(os.path.join(self.customDir, "iso_name")):
+                iso_name = commands.getoutput("cat %s/iso_name" % self.customDir)
             else:
-                currentDescription = "Linux Mint <VERSION> <EDITION> <XX>-bit"
-            self.wTree.get_widget("entryLiveCdDescription").set_text(currentDescription)
+                iso_name = "Linux Mint <VERSION> <EDITION> <XX>-bit"
+            self.wTree.get_widget("entryLiveCdDescription").set_text(iso_name)
             self.setPage(self.pageLiveBuild)
             self.checkEnableBurnIso()
             return True
@@ -374,7 +374,7 @@ class Reconstructor:
                 print _('Launching Xterm for advanced customization...')
                 # use x-terminal-emulator if xterm isn't available
                 if os.path.exists("/usr/bin/xterm"):
-                    os.popen('export HOME=/root ; xterm -bg black -fg white -rightbar -title \"Reconstructor Terminal\" -e /tmp/reconstructor-terminal.sh')
+                    os.popen('export HOME=/root ; xterm -bg black -fg white -rightbar -title \"%s\" -e /tmp/reconstructor-terminal.sh' % self.folder)
                 else:
                     os.popen('export HOME=/root ; x-terminal-emulator -e /tmp/reconstructor-terminal.sh')
             else:
@@ -601,6 +601,9 @@ class Reconstructor:
         print "Custom Directory: " + str(self.customDir)
         print "Create New Project: " + str(self.createNewProject)        
         print "ISO Filename: " + str(self.isoFilename)
+        
+        self.folder = self.customDir.split("/")[-1]
+        self.wTree.get_widget("windowMain").set_title("%s - %s" % (self.folder, self.appName))
 
 # ---------- Setup ---------- #
     def setupWorkingDirectory(self):
@@ -807,7 +810,7 @@ class Reconstructor:
             if self.wTree.get_widget("entryLiveCdDescription").get_text() != "":
                 self.LiveCdDescription = self.wTree.get_widget("entryLiveCdDescription").get_text()
                 
-            os.system("echo \"" + self.LiveCdDescription + "\" > ~/.linuxmint/mintConstructor/currentDescription")
+            os.system("echo \"%s\" > %s/iso_name" % (self.LiveCdDescription, self.customDir))
 
             # build iso according to architecture                
             print _("Building ISO...")

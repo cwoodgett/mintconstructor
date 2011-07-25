@@ -1,3 +1,10 @@
+mintconstructor (3.0.3) julia; urgency=low
+
+  * Description per project
+  * Project name in window titles  
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon,  25 Jul 2011 12:11:00 +0000
+
 mintconstructor (3.0.2) julia; urgency=low
 
   * Replace mkisofs with genisoimage
