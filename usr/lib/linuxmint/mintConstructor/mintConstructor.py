@@ -735,18 +735,22 @@ class Reconstructor:
         #os.popen("rm -rf %s/remaster/casper/*" % self.customDir)
         
         # Update kernel and initrd
-        if os.path.exists("%(directory)s/root/vmlinuz" % {'directory':self.customDir}):
-            vmlinuzpath = commands.getoutput("ls -al %s/root/vmlinuz" % self.customDir).split("/")[-1]            
-            os.popen("cp %(directory)s/root/boot/%(path)s %(directory)s/remaster/casper/vmlinuz" % {'directory':self.customDir, 'path':vmlinuzpath})
+        vmlinuz_filename = commands.getoutput("ls -al %s/root/vmlinuz" % self.customDir).split("/")[-1]
+        vmlinuz_path = "%s/root/boot/%s" % (self.customDir, vmlinuz_filename)
+        if os.path.exists(vmlinuz_path):                
+            os.popen("cp %s %s/remaster/casper/vmlinuz" % (vmlinuz_path, self.customDir))
             print "Updating vmlinuz"
         else:
-            print "WARNING: Not updating vmlinuz!!!"
-        if os.path.exists("%(directory)s/root/initrd.img" % {'directory':self.customDir}):
-            initrdpath = commands.getoutput("ls -al %s/root/initrd.img" % self.customDir).split("/")[-1] 
-            os.popen("cp %(directory)s/root/boot/%(path)s %(directory)s/remaster/casper/initrd.lz" % {'directory':self.customDir, 'path':initrdpath})
+            print "WARNING: Not updating vmlinuz!!! %s not found!" % vmlinuz_path
+            return
+        initrd_filename = commands.getoutput("ls -al %s/root/initrd.img" % self.customDir).split("/")[-1]
+        initrd_path = "%s/root/boot/%s" % (self.customDir, initrd_filename)
+        if os.path.exists(initrd_path):             
+            os.popen("cp %s %s/remaster/casper/initrd.lz" % (initrd_path, self.customDir))
             print "Updating initrd"
         else:
-            print "WARNING: Not updating initrd!!!"
+            print "WARNING: Not updating initrd!!! %s not found!" % initrd_path
+            return
         
         #Update filesystem.size
         os.popen("du -b %(directory)s/root/ 2> /dev/null | tail -1 | awk {'print $1;'} > %(directory)s/remaster/casper/filesystem.size" % {'directory':self.customDir})
