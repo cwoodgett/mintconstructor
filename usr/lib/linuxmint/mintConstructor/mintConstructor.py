@@ -820,6 +820,9 @@ class Reconstructor:
             print _("Building ISO...")
             os.system('genisoimage -o \"' + self.buildLiveCdFilename + '\" -b \"isolinux/isolinux.bin\" -c \"isolinux/boot.cat\" -no-emul-boot -boot-load-size 4 -boot-info-table -V \"' + self.LiveCdDescription + '\" -cache-inodes -r -J -l \"' + os.path.join(self.customDir, "remaster") + '\"')                
 
+            print _("Making Hyrbrid ISO...")
+            os.system('isohybrid \"' + self.buildLiveCdFilename + '\"')
+
         self.setDefaultCursor()
         self.setPage(self.pageFinish)
         # print status message
