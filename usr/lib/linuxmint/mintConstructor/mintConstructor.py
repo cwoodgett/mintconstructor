@@ -783,7 +783,7 @@ class Reconstructor:
             print _("Building SquashFS root...")
             # check for alternate mksquashfs
             if mksquashfs == '':
-                os.system('mksquashfs \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
+                os.system('mksquashfs \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\" -comp xz')
             else:
                 os.system(mksquashfs + ' \"' + os.path.join(self.customDir, "root/") + '\"' + ' \"' + os.path.join(self.customDir, "remaster/casper/filesystem.squashfs") + '\"')
 
