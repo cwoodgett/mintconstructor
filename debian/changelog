@@ -1,3 +1,10 @@
+mintconstructor (3.0.5) lisa; urgency=low
+
+  * XZ compression
+  * Hybrid ISO
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 09 Jan 2012 10:25:31 +0000
+
 mintconstructor (3.0.4) julia; urgency=low
 
   * Bug fix for vmlinuz and initrd
