@@ -1,3 +1,10 @@
+mintconstructor (3.0.6) maya; urgency=low
+
+  * Updates casper UUID
+  * Fixed typo
+
+ -- Clement Lefebvre <root@linuxmint.com>  Fri, 13 Apr 2012 13:05:07 +0100
+
 mintconstructor (3.0.5) lisa; urgency=low
 
   * XZ compression
