@@ -749,10 +749,12 @@ class Reconstructor:
             print "Updating initrd"            
             if "gzip" in commands.getoutput("file %s" % initrd_path).lower():
                 os.popen("cp %s %s/remaster/casper/initrd.gz" % (initrd_path, self.customDir))
+                os.popen("mkdir -p %s/remaster/.disk" % self.customDir)
                 os.popen("/sbin/casper-new-uuid %s/remaster/casper/initrd.gz %s/remaster/casper/ %s/remaster/.disk/" % (self.customDir, self.customDir, self.customDir))
                 os.popen("mv %s/remaster/casper/initrd.gz %s/remaster/casper/initrd.lz" % (self.customDir, self.customDir))
             else:
                 os.popen("cp %s %s/remaster/casper/initrd.lz" % (initrd_path, self.customDir))
+                os.popen("mkdir -p %s/remaster/.disk" % self.customDir)
                 os.popen("/sbin/casper-new-uuid %s/remaster/casper/initrd.lz %s/remaster/casper/ %s/remaster/.disk/" % (self.customDir, self.customDir, self.customDir))            
         else:
             print "WARNING: Not updating initrd!!! %s not found!" % initrd_path
