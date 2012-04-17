@@ -1,3 +1,9 @@
+mintconstructor (3.0.8) oneiric; urgency=low
+
+  * Don't rely on casper/live-boot, have mintConstructor handle the generation of new UUIDs
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 17 Apr 2012 14:43:50 +0100
+
 mintconstructor (3.0.7) oneiric; urgency=low
 
   * Create .disk if it isn't there.

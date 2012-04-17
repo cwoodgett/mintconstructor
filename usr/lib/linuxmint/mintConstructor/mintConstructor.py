@@ -9,6 +9,7 @@ import gettext
 import re
 import commands
 import datetime
+import tempfile
 
 try:
     import pygtk
@@ -747,15 +748,28 @@ class Reconstructor:
         initrd_path = "%s/root/boot/%s" % (self.customDir, initrd_filename)
         if os.path.exists(initrd_path):                         
             print "Updating initrd"            
+            os.popen("mkdir -p %s/remaster/.disk" % self.customDir)
+            os.popen("rm -rf %s/remaster/.disk/*uuid*" % self.customDir)
+            tempdir = tempfile.mkdtemp()
+            cwd = commands.getoutput("pwd")
+            os.chdir(tempdir)
             if "gzip" in commands.getoutput("file %s" % initrd_path).lower():
-                os.popen("cp %s %s/remaster/casper/initrd.gz" % (initrd_path, self.customDir))
-                os.popen("mkdir -p %s/remaster/.disk" % self.customDir)
-                os.popen("/sbin/casper-new-uuid %s/remaster/casper/initrd.gz %s/remaster/casper/ %s/remaster/.disk/" % (self.customDir, self.customDir, self.customDir))
-                os.popen("mv %s/remaster/casper/initrd.gz %s/remaster/casper/initrd.lz" % (self.customDir, self.customDir))
+                os.popen("cp %s %s/remaster/casper/initrd.gz" % (initrd_path, self.customDir))                        
+                os.popen("gzip -cd \"%s/remaster/casper/initrd.gz\" -S \".gz\" | cpio -id" % self.customDir)
+                os.popen("uuidgen -r > conf/uuid.conf")                
+                os.popen("find . | cpio --quiet --dereference -o -H newc | gzip -9c > \"%s/remaster/casper/initrd.gz\"" % self.customDir)            
+                os.popen("cp conf/uuid.conf %s/remaster/.disk/casper-uuid-generic" % self.customDir)
+                os.popen("cp conf/uuid.conf %s/remaster/.disk/live-uuid-generic" % self.customDir)               
+                os.popen("mv %s/remaster/casper/initrd.gz %s/remaster/casper/initrd.lz" % (self.customDir, self.customDir))                
             else:
-                os.popen("cp %s %s/remaster/casper/initrd.lz" % (initrd_path, self.customDir))
-                os.popen("mkdir -p %s/remaster/.disk" % self.customDir)
-                os.popen("/sbin/casper-new-uuid %s/remaster/casper/initrd.lz %s/remaster/casper/ %s/remaster/.disk/" % (self.customDir, self.customDir, self.customDir))            
+                os.popen("cp %s %s/remaster/casper/initrd.lz" % (initrd_path, self.customDir))                
+                os.popen("lzma -cd \"%s/remaster/casper/initrd.lz\" -S \".lz\" | cpio -id" % self.customDir)
+                os.popen("uuidgen -r > conf/uuid.conf")                
+                os.popen("find . | cpio --quiet --dereference -o -H newc | lzma -9c > \"%s/remaster/casper/initrd.lz\"" % self.customDir)            
+                os.popen("cp conf/uuid.conf %s/remaster/.disk/casper-uuid-generic" % self.customDir)
+                os.popen("cp conf/uuid.conf %s/remaster/.disk/live-uuid-generic" % self.customDir)
+            os.chdir(cwd)
+            shutil.rmtree(tempdir)
         else:
             print "WARNING: Not updating initrd!!! %s not found!" % initrd_path
             return
