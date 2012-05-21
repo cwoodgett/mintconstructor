@@ -9,36 +9,39 @@ class Language:
 		self.code = code
 		self.description = description
 
-class Localizer:
+class Remaster:
 
     def __init__(self, filename):
-		self.base_dir = "/tmp/mint-remaster-iso"
-		self.remaster_dir = os.path.join(self.base_dir, "remaster")
-		self.root_dir = os.path.join(self.base_dir, "root")
-		self.initrd_dir = os.path.join(self.base_dir, "initrd")        
-		self.mount_dir = "/tmp/mint-remaster-iso-cdrom"
-		self.squash_mount_dir = "/tmp/mint-remaster-iso-squash"
-		
-		self.source_live_cd_filename = filename
-		self.build_live_cd_filename = self.source_live_cd_filename.replace(".iso", "-remaster.iso")
-				
-		self.build_live_cd_description = "Linux Mint 13 Maya"
+        self.base_dir = "/tmp/mint-remaster-iso"
+        self.remaster_dir = os.path.join(self.base_dir, "remaster")
+        self.root_dir = os.path.join(self.base_dir, "root")
+        self.initrd_dir = os.path.join(self.base_dir, "initrd")        
+        self.mount_dir = "/tmp/mint-remaster-iso-cdrom"
+        self.squash_mount_dir = "/tmp/mint-remaster-iso-squash"
 
-		os.system("rm -rf " + self.base_dir)
-		os.popen("umount --force " + self.mount_dir)
-		os.system("rm -rf " + self.mount_dir)
-		os.popen("umount --force " + self.squash_mount_dir)
-		os.system("rm -rf " + self.squash_mount_dir)
+        self.source_live_cd_filename = filename
+        self.build_live_cd_filename = self.source_live_cd_filename.replace(".iso", "-remaster.iso")
+	
+        self.build_live_cd_description = "Linux Mint 13 Maya"
 
-		os.system("mkdir -p " + self.remaster_dir)
-		os.system("mkdir -p " + self.root_dir)
-		os.system("mkdir -p " + self.initrd_dir)
-		os.system("mkdir -p " + self.mount_dir) 
-		os.system("mkdir -p " + self.squash_mount_dir) 
+        os.system("rm -rf " + self.base_dir)
+        os.popen("umount --force " + self.mount_dir)
+        os.system("rm -rf " + self.mount_dir)
+        os.popen("umount --force " + self.squash_mount_dir)
+        os.system("rm -rf " + self.squash_mount_dir)
 
-		self.extract()
-		self.chroot_operations()
-		self.build()
+        os.system("mkdir -p " + self.remaster_dir)
+        os.system("mkdir -p " + self.root_dir)
+        os.system("mkdir -p " + self.initrd_dir)
+        os.system("mkdir -p " + self.mount_dir) 
+        os.system("mkdir -p " + self.squash_mount_dir) 
+
+        self.select_nocodecs()
+        self.select_oem()
+        self.select_language()
+        self.extract()
+        self.chroot_operations()
+        self.build()
 		
     def select_language(self):
         self.languages = []
@@ -212,4 +215,4 @@ if __name__ == "__main__":
 			print "Usage: mint-remaster-iso filename.iso"
 			sys.exit(1)
 		else:					
-			rec = Localizer(sys.argv[1])
+			rec = Remaster(sys.argv[1])
