@@ -126,8 +126,7 @@ class Remaster:
         if self.change_oem.lower() == "yes":
             print "------- Installing OEM support"
             command = "apt-get install --force-yes -y oem-config-gtk"
-            os.system("chroot " + self.root_dir + " /bin/sh -c \""+ command +"\"")
-            os.system("cp /usr/lib/linuxmint/mintConstructor/mdm.initd %s/etc/init.d/mdm" % self.root_dir) # Overwrite mdm so it doesn't start with only-ubiquity (initramfs doesn't know about mdm..)
+            os.system("chroot " + self.root_dir + " /bin/sh -c \""+ command +"\"")            
 
         if self.change_nocodecs.lower() == "yes":
             print "------- Removing codecs"
