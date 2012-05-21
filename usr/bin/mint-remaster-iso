@@ -133,6 +133,7 @@ class Remaster:
             for pkg in ["mint-meta-codecs", "libmp3lame0", "libxvidcore4", "mplayer2", "gstreamer0.10-esd", "gstreamer0.10-ffmpeg", "gstreamer0.10-pitfdll", "gstreamer0.10-plugins-bad", "gstreamer0.10-plugins-bad-multiverse", "gstreamer0.10-plugins-ugly", "gstreamer0.10-plugins-ugly-multiverse", "libdvdcss2", "libdvdnav4", "libdvdread4", "cabextract", "gecko-mediaplayer", "unrar", "unshield", "w32codecs", "w64codecs", "flashplugin-nonfree", "flashplugin-installer", "mint-flashplugin", "mint-flashplugin-10.2", "mint-flashplugin-10.3", "mint-flashplugin-11"]:
                 command = "apt-get remove --purge --force-yes -y %s" % pkg
                 os.system("chroot " + self.root_dir + " /bin/sh -c \""+ command +"\"")
+            os.system("cp /usr/lib/linuxmint/mintConstructor/mint-meta-codecs.desktop %s/usr/share/applications/mint-meta-codecs.desktop" % self.root_dir)
 
         print "------- Cleaning up"
         command = "aptitude purge ~c"

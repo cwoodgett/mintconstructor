@@ -1,3 +1,9 @@
+mintconstructor (3.1.0) maya; urgency=low
+
+  * Add mint-meta-codecs.desktop to noncodecs ISOs
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 21 May 2012 22:29:13 +0100
+
 mintconstructor (3.0.9) maya; urgency=low
 
   * Added mint-remaster-iso
