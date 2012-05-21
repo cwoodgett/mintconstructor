@@ -1,3 +1,9 @@
+mintconstructor (3.0.9) maya; urgency=low
+
+  * Added mint-remaster-iso
+
+ -- Clement Lefebvre <root@linuxmint.com>  Mon, 21 May 2012 12:11:08 +0100
+
 mintconstructor (3.0.8) oneiric; urgency=low
 
   * Don't rely on casper/live-boot, have mintConstructor handle the generation of new UUIDs

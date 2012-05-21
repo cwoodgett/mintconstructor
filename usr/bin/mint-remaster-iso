@@ -1,0 +1,215 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import time
+
+class Language:
+	def __init__(self, code, description):
+		self.code = code
+		self.description = description
+
+class Localizer:
+
+    def __init__(self, filename):
+		self.base_dir = "/tmp/mint-remaster-iso"
+		self.remaster_dir = os.path.join(self.base_dir, "remaster")
+		self.root_dir = os.path.join(self.base_dir, "root")
+		self.initrd_dir = os.path.join(self.base_dir, "initrd")        
+		self.mount_dir = "/tmp/mint-remaster-iso-cdrom"
+		self.squash_mount_dir = "/tmp/mint-remaster-iso-squash"
+		
+		self.source_live_cd_filename = filename
+		self.build_live_cd_filename = self.source_live_cd_filename.replace(".iso", "-remaster.iso")
+				
+		self.build_live_cd_description = "Linux Mint 13 Maya"
+
+		os.system("rm -rf " + self.base_dir)
+		os.popen("umount --force " + self.mount_dir)
+		os.system("rm -rf " + self.mount_dir)
+		os.popen("umount --force " + self.squash_mount_dir)
+		os.system("rm -rf " + self.squash_mount_dir)
+
+		os.system("mkdir -p " + self.remaster_dir)
+		os.system("mkdir -p " + self.root_dir)
+		os.system("mkdir -p " + self.initrd_dir)
+		os.system("mkdir -p " + self.mount_dir) 
+		os.system("mkdir -p " + self.squash_mount_dir) 
+
+		self.extract()
+		self.chroot_operations()
+		self.build()
+		
+	def select_language(self):
+		self.languages = []
+		self.language_codes = []
+		file = open("/usr/lib/linuxmint/mintConstructor/languages.list", "r")
+		for line in file:
+			elements = line.strip().split("=")			
+			if len(elements) == 2: 
+				language = Language(elements[0], elements[1])
+				self.languages.append(language)
+				self.language_codes.append(language.code)
+		file.close()
+		
+		print "Do you want to change the language?"		
+		self.change_language = raw_input("Please type \"Yes\" or \"No\": ").strip()		
+		while self.change_language.lower() not in ['yes', 'no']:
+			self.change_language = raw_input("Invalid answer. Please type \"Yes\" or \"No\": ").strip()
+		
+		if self.change_language == "yes":
+			print "Available languages: "
+			for language in self.languages:
+				print "    - %s (%s)" % (language.code, language.description)
+			
+			self.language = raw_input("Please select a language: ").strip()
+			self.isolinux_language = self.language
+			
+			if not self.language in self.language_codes:
+				print "Unkown language code: " + self.language
+				sys.exit(1)		
+			
+			if self.language == "pt":
+				print "Available variants: "
+				print "    - pt_PT (Portugal)"
+				print "    - pt_BR (Brazil)"
+				self.isolinux_language = raw_input("Please select a variant: ").strip()
+				if not self.isolinux_language in ["pt_PT", "pt_BR"]:
+					print "Unkown variant code: " + self.isolinux_language
+					sys.exit(1)         
+					
+	def select_oem(self):		
+		print "Do you want to make this ISO an OEM ISO?"		
+		self.change_oem = raw_input("Please type \"Yes\" or \"No\": ").strip()		
+		while self.change_oem.lower() not in ['yes', 'no']:
+			self.change_oem = raw_input("Invalid answer. Please type \"Yes\" or \"No\": ").strip()
+		
+	def select_nocodecs(self):		
+		print "Do you want to remove the Media codecs from this ISO?"		
+		self.change_nocodecs = raw_input("Please type \"Yes\" or \"No\": ").strip()		
+		while self.change_nocodecs.lower() not in ['yes', 'no']:
+			self.change_nocodecs = raw_input("Invalid answer. Please type \"Yes\" or \"No\": ").strip()		                                
+               
+    def chroot_operations(self):  
+		print "***** Localizing system"
+		os.system('cp -f /etc/resolv.conf ' + os.path.join(self.base_dir, "root/etc/resolv.conf"))		     
+		os.system('mount --bind /proc \"' + os.path.join(self.base_dir, "root/proc") + '\"')
+		os.system('mv -f \"' + os.path.join(self.base_dir, "root/etc/wgetrc") + '\" \"' + os.path.join(self.base_dir, "root/etc/wgetrc.orig") + '\"')
+		os.system('cp -f /etc/wgetrc ' + os.path.join(self.base_dir, "root/etc/wgetrc"))	
+		
+		print "------- Modifying liveCD menu"		
+		isolinux = []
+		file = open(os.path.join(self.base_dir, "remaster/isolinux/isolinux.cfg"), "r")
+		for line in file:
+			if self.change_language:
+				new_line = line.replace("initrd=/casper/initrd.gz", "initrd=/casper/initrd.gz locale=" + self.isolinux_language)
+				new_line = new_line.replace("initrd=/casper/initrd.lz", "initrd=/casper/initrd.lz locale=" + self.isolinux_language)
+			if self.change_oem:
+				new_line = line.replace("initrd=/casper/initrd.gz", "oem-config/enable=true only-ubiquity initrd=/casper/initrd.gz")
+				new_line = new_line.replace("initrd=/casper/initrd.lz", "oem-config/enable=true only-ubiquity initrd=/casper/initrd.lz")
+			isolinux.append(new_line)
+		file.close()
+		file = open(os.path.join(self.base_dir, "remaster/isolinux/isolinux.cfg"), "w")
+		file.writelines(isolinux)
+		file.close()		
+							
+		if self.change_language == "yes":
+			print "------- Installing Language packs"
+			command = "apt-get install --force-yes -y language-support-xx language-pack-xx language-pack-gnome-xx-base language-pack-gnome-xx".replace("xx", self.language)
+			os.system("chroot " + self.root_dir + " /bin/sh -c \""+ command +"\"")
+			command = "apt-get install --force-yes -y language-pack-kde-xx-base language-pack-kde-xx".replace("xx", self.language)
+			os.system("chroot " + self.root_dir + " /bin/sh -c \""+ command +"\"")
+		
+		if self.change_oem == "yes":
+			print "------- Installing OEM support"
+			command = "apt-get install --force-yes -y oem-config-gtk"
+			os.system("chroot " + self.root_dir + " /bin/sh -c \""+ command +"\"")			
+		
+		if self.change_nocodecs == "yes":
+			print "------- Removing codecs"
+			for pkg in ["mint-meta-codecs", "libmp3lame0", "libxvidcore4", "mplayer2", "gstreamer0.10-esd", "gstreamer0.10-ffmpeg", "gstreamer0.10-pitfdll", "gstreamer0.10-plugins-bad", "gstreamer0.10-plugins-bad-multiverse", "gstreamer0.10-plugins-ugly", "gstreamer0.10-plugins-ugly-multiverse", "libdvdcss2", "libdvdnav4", "libdvdread4", "cabextract", "gecko-mediaplayer", "unrar", "unshield", "w32codecs", "w64codecs", "flashplugin-nonfree", "flashplugin-installer", "mint-flashplugin", "mint-flashplugin-10.2", "mint-flashplugin-10.3", "mint-flashplugin-11"]:
+				command = "apt-get remove --purge --force-yes -y %s" % pkg
+				os.system("chroot " + self.root_dir + " /bin/sh -c \""+ command +"\"")
+				
+		print "Cleaning up"
+		command = "aptitude purge ~c"
+		os.system("chroot " + self.root_dir + " /bin/sh -c \""+ command +"\"")
+		command = "aptitude unmarkauto ~M"
+		os.system("chroot " + self.root_dir + " /bin/sh -c \""+ command +"\"")
+		command = "apt-get clean; rm -rf /var/cache/debconf/*.dat-old; rm -rf /var/lib/aptitude/*.old; rm -rf /var/lib/dpkg/*-old; rm -rf /var/cache/apt/*.bin; updatedb"
+		os.system("chroot " + self.root_dir + " /bin/sh -c \""+ command +"\"")		
+		os.system("rm -f %s/root/.bash_history" % self.root_dir)
+
+		os.system('mv -f \"' + os.path.join(self.base_dir, "root/etc/wgetrc.orig") + '\" \"' + os.path.join(self.base_dir, "root/etc/wgetrc") + '\"')
+		os.system('rm -rf \"' + os.path.join(self.base_dir, "root/etc/resolv.conf") + '\"')		
+		os.system('umount --force \"' + os.path.join(self.base_dir, "root/proc/") + '\"')
+   
+    def extract(self):
+		print "***** Extracting ISO file"
+		os.system('mount -o loop \"' + self.source_live_cd_filename + '\" ' + self.mount_dir)  
+		print "------- Copying files"
+		os.system('rsync -at --del ' + self.mount_dir + '/ \"' + self.remaster_dir + '\"')
+
+		print "------- Decompressing filesystem"
+		os.system('mount -t squashfs -o loop ' + self.mount_dir + '/casper/filesystem.squashfs \"' + self.squash_mount_dir + '\"')						
+		os.system('rsync -at --del \"' + self.squash_mount_dir + '\"/ \"' + self.root_dir + '\"')
+		os.system('umount --force \"' + self.squash_mount_dir + '\"')
+				
+		os.system('chmod 6755 \"' + os.path.join(self.base_dir, "root/usr/bin/sudo") + '\"')
+		os.system('chmod 0440 \"' + os.path.join(self.base_dir, "root/etc/sudoers") + '\"')
+						       			
+		os.system("umount --force " + self.mount_dir)
+		
+
+    def build(self):              
+		print "***** Assembling new ISO"
+		
+		os.popen("du -b %(directory)s/root/ 2> /dev/null | tail -1 | awk {'print $1;'} > %(directory)s/remaster/casper/filesystem.size" % {'directory':self.base_dir})
+
+		print "------- Compressing filesystem"
+		q = ' dpkg-query -W --showformat=\'${Package} ${Version}\n\' '
+		os.system('chroot \"' + os.path.join(self.base_dir, "root/") + '\"' + q + ' > \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.manifest") + '\"' )
+		os.system('cp -f \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.manifest") + '\" \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.manifest-desktop") + '\"')
+		if os.path.exists(os.path.join(self.base_dir, "remaster/casper/filesystem.squashfs")):                    
+			os.system('rm -Rf \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.squashfs") + '\"')
+		os.system(' mksquashfs \"' + os.path.join(self.base_dir, "root/") + '\"' + ' \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.squashfs") + '\"')
+
+		print "------- Updating manifests"         
+		os.system("/usr/lib/linuxmint/mint-remaster-iso/updateManifest.sh " + self.base_dir)
+		print "------- Updating md5 sums"
+		os.system('rm ' + os.path.join(self.base_dir, "remaster/") + ' md5sum.txt')
+		os.system('cd \"' + os.path.join(self.base_dir, "remaster/") + '\"; ' + 'find . -type f -print0 | xargs -0 md5sum > md5sum.txt')
+		#Remove md5sum.txt from md5sum.txt
+		os.system("sed -e '/md5sum.txt/d' " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt > " + os.path.join(self.base_dir, "remaster/") + "md5sum.new")
+		os.system("mv " + os.path.join(self.base_dir, "remaster/") + "md5sum.new " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt")
+		#Remove boot.cat from md5sum.txt
+		os.system("sed -e '/boot.cat/d' " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt > " + os.path.join(self.base_dir, "remaster/") + "md5sum.new")
+		os.system("mv " + os.path.join(self.base_dir, "remaster/") + "md5sum.new " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt")
+		#Remove isolinux.bin from md5sum.txt
+		os.system("sed -e '/isolinux.bin/d' " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt > " + os.path.join(self.base_dir, "remaster/") + "md5sum.new")
+		os.system("mv " + os.path.join(self.base_dir, "remaster/") + "md5sum.new " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt")
+
+		# remove existing iso
+		if os.path.exists(self.build_live_cd_filename):			
+			os.system('rm -rf \"' + self.build_live_cd_filename + '\"')                
+		print "------- Building new ISO file"
+		os.system('genisoimage -o \"' + self.build_live_cd_filename + '\" -b \"isolinux/isolinux.bin\" -c \"isolinux/boot.cat\" -no-emul-boot -boot-load-size 4 -boot-info-table -V \"' + self.build_live_cd_description + '\" -cache-inodes -r -J -l \"' + self.remaster_dir + '\"')
+		
+        print _("Making Hybrid ISO...")
+        os.system('isohybrid \"' + self.build_live_cd_filename + '\"')
+            
+		print "***** Finished!"
+		print "------- ISO Located: " + self.build_live_cd_filename  
+		if os.path.exists("/usr/bin/aplay"):
+			os.system("/usr/bin/aplay /usr/lib/linuxmint/mint-remaster-iso/done.wav")
+
+if __name__ == "__main__":  
+    if os.getuid() != 0 :
+        print "You must run with root privileges"
+        sys.exit(1)        
+    else :
+		if len(sys.argv) != 2:
+			print "Usage: mint-remaster-iso filename.iso"
+			sys.exit(1)
+		else:					
+			rec = Localizer(sys.argv[1])
