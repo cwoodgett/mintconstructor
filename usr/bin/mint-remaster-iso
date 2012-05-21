@@ -40,55 +40,55 @@ class Localizer:
 		self.chroot_operations()
 		self.build()
 		
-	def select_language(self):
-		self.languages = []
-		self.language_codes = []
-		file = open("/usr/lib/linuxmint/mintConstructor/languages.list", "r")
-		for line in file:
-			elements = line.strip().split("=")			
-			if len(elements) == 2: 
-				language = Language(elements[0], elements[1])
-				self.languages.append(language)
-				self.language_codes.append(language.code)
-		file.close()
-		
-		print "Do you want to change the language?"		
-		self.change_language = raw_input("Please type \"Yes\" or \"No\": ").strip()		
-		while self.change_language.lower() not in ['yes', 'no']:
-			self.change_language = raw_input("Invalid answer. Please type \"Yes\" or \"No\": ").strip()
-		
-		if self.change_language == "yes":
-			print "Available languages: "
-			for language in self.languages:
-				print "    - %s (%s)" % (language.code, language.description)
-			
-			self.language = raw_input("Please select a language: ").strip()
-			self.isolinux_language = self.language
-			
-			if not self.language in self.language_codes:
-				print "Unkown language code: " + self.language
-				sys.exit(1)		
-			
-			if self.language == "pt":
-				print "Available variants: "
-				print "    - pt_PT (Portugal)"
-				print "    - pt_BR (Brazil)"
-				self.isolinux_language = raw_input("Please select a variant: ").strip()
-				if not self.isolinux_language in ["pt_PT", "pt_BR"]:
-					print "Unkown variant code: " + self.isolinux_language
-					sys.exit(1)         
-					
-	def select_oem(self):		
-		print "Do you want to make this ISO an OEM ISO?"		
-		self.change_oem = raw_input("Please type \"Yes\" or \"No\": ").strip()		
-		while self.change_oem.lower() not in ['yes', 'no']:
-			self.change_oem = raw_input("Invalid answer. Please type \"Yes\" or \"No\": ").strip()
-		
-	def select_nocodecs(self):		
-		print "Do you want to remove the Media codecs from this ISO?"		
-		self.change_nocodecs = raw_input("Please type \"Yes\" or \"No\": ").strip()		
-		while self.change_nocodecs.lower() not in ['yes', 'no']:
-			self.change_nocodecs = raw_input("Invalid answer. Please type \"Yes\" or \"No\": ").strip()		                                
+    def select_language(self):
+        self.languages = []
+        self.language_codes = []
+        file = open("/usr/lib/linuxmint/mintConstructor/languages.list", "r")
+        for line in file:
+            elements = line.strip().split("=")			
+            if len(elements) == 2: 
+                language = Language(elements[0], elements[1])
+                self.languages.append(language)
+                self.language_codes.append(language.code)
+        file.close()
+
+        print "Do you want to change the language?"		
+        self.change_language = raw_input("Please type \"Yes\" or \"No\": ").strip()		
+        while self.change_language.lower() not in ['yes', 'no']:
+            self.change_language = raw_input("Invalid answer. Please type \"Yes\" or \"No\": ").strip()
+
+        if self.change_language == "yes":
+            print "Available languages: "
+        for language in self.languages:
+            print "    - %s (%s)" % (language.code, language.description)
+
+        self.language = raw_input("Please select a language: ").strip()
+        self.isolinux_language = self.language
+
+        if not self.language in self.language_codes:
+            print "Unkown language code: " + self.language
+            sys.exit(1)		
+
+        if self.language == "pt":
+            print "Available variants: "
+            print "    - pt_PT (Portugal)"
+            print "    - pt_BR (Brazil)"
+            self.isolinux_language = raw_input("Please select a variant: ").strip()
+            if not self.isolinux_language in ["pt_PT", "pt_BR"]:
+                print "Unkown variant code: " + self.isolinux_language
+                sys.exit(1)         
+
+    def select_oem(self):		
+        print "Do you want to make this ISO an OEM ISO?"		
+        self.change_oem = raw_input("Please type \"Yes\" or \"No\": ").strip()		
+        while self.change_oem.lower() not in ['yes', 'no']:
+            self.change_oem = raw_input("Invalid answer. Please type \"Yes\" or \"No\": ").strip()
+
+    def select_nocodecs(self):		
+        print "Do you want to remove the Media codecs from this ISO?"		
+        self.change_nocodecs = raw_input("Please type \"Yes\" or \"No\": ").strip()		
+        while self.change_nocodecs.lower() not in ['yes', 'no']:
+            self.change_nocodecs = raw_input("Invalid answer. Please type \"Yes\" or \"No\": ").strip()		                                
                
     def chroot_operations(self):  
 		print "***** Localizing system"
@@ -162,45 +162,45 @@ class Localizer:
 		
 
     def build(self):              
-		print "***** Assembling new ISO"
-		
-		os.popen("du -b %(directory)s/root/ 2> /dev/null | tail -1 | awk {'print $1;'} > %(directory)s/remaster/casper/filesystem.size" % {'directory':self.base_dir})
+        print "***** Assembling new ISO"
 
-		print "------- Compressing filesystem"
-		q = ' dpkg-query -W --showformat=\'${Package} ${Version}\n\' '
-		os.system('chroot \"' + os.path.join(self.base_dir, "root/") + '\"' + q + ' > \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.manifest") + '\"' )
-		os.system('cp -f \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.manifest") + '\" \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.manifest-desktop") + '\"')
-		if os.path.exists(os.path.join(self.base_dir, "remaster/casper/filesystem.squashfs")):                    
-			os.system('rm -Rf \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.squashfs") + '\"')
-		os.system(' mksquashfs \"' + os.path.join(self.base_dir, "root/") + '\"' + ' \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.squashfs") + '\"')
+        os.popen("du -b %(directory)s/root/ 2> /dev/null | tail -1 | awk {'print $1;'} > %(directory)s/remaster/casper/filesystem.size" % {'directory':self.base_dir})
 
-		print "------- Updating manifests"         
-		os.system("/usr/lib/linuxmint/mint-remaster-iso/updateManifest.sh " + self.base_dir)
-		print "------- Updating md5 sums"
-		os.system('rm ' + os.path.join(self.base_dir, "remaster/") + ' md5sum.txt')
-		os.system('cd \"' + os.path.join(self.base_dir, "remaster/") + '\"; ' + 'find . -type f -print0 | xargs -0 md5sum > md5sum.txt')
-		#Remove md5sum.txt from md5sum.txt
-		os.system("sed -e '/md5sum.txt/d' " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt > " + os.path.join(self.base_dir, "remaster/") + "md5sum.new")
-		os.system("mv " + os.path.join(self.base_dir, "remaster/") + "md5sum.new " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt")
-		#Remove boot.cat from md5sum.txt
-		os.system("sed -e '/boot.cat/d' " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt > " + os.path.join(self.base_dir, "remaster/") + "md5sum.new")
-		os.system("mv " + os.path.join(self.base_dir, "remaster/") + "md5sum.new " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt")
-		#Remove isolinux.bin from md5sum.txt
-		os.system("sed -e '/isolinux.bin/d' " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt > " + os.path.join(self.base_dir, "remaster/") + "md5sum.new")
-		os.system("mv " + os.path.join(self.base_dir, "remaster/") + "md5sum.new " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt")
+        print "------- Compressing filesystem"
+        q = ' dpkg-query -W --showformat=\'${Package} ${Version}\n\' '
+        os.system('chroot \"' + os.path.join(self.base_dir, "root/") + '\"' + q + ' > \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.manifest") + '\"' )
+        os.system('cp -f \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.manifest") + '\" \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.manifest-desktop") + '\"')
+        if os.path.exists(os.path.join(self.base_dir, "remaster/casper/filesystem.squashfs")):                    
+	        os.system('rm -Rf \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.squashfs") + '\"')
+        os.system(' mksquashfs \"' + os.path.join(self.base_dir, "root/") + '\"' + ' \"' + os.path.join(self.base_dir, "remaster/casper/filesystem.squashfs") + '\"')
 
-		# remove existing iso
-		if os.path.exists(self.build_live_cd_filename):			
-			os.system('rm -rf \"' + self.build_live_cd_filename + '\"')                
-		print "------- Building new ISO file"
-		os.system('genisoimage -o \"' + self.build_live_cd_filename + '\" -b \"isolinux/isolinux.bin\" -c \"isolinux/boot.cat\" -no-emul-boot -boot-load-size 4 -boot-info-table -V \"' + self.build_live_cd_description + '\" -cache-inodes -r -J -l \"' + self.remaster_dir + '\"')
-		
+        print "------- Updating manifests"         
+        os.system("/usr/lib/linuxmint/mint-remaster-iso/updateManifest.sh " + self.base_dir)
+        print "------- Updating md5 sums"
+        os.system('rm ' + os.path.join(self.base_dir, "remaster/") + ' md5sum.txt')
+        os.system('cd \"' + os.path.join(self.base_dir, "remaster/") + '\"; ' + 'find . -type f -print0 | xargs -0 md5sum > md5sum.txt')
+        #Remove md5sum.txt from md5sum.txt
+        os.system("sed -e '/md5sum.txt/d' " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt > " + os.path.join(self.base_dir, "remaster/") + "md5sum.new")
+        os.system("mv " + os.path.join(self.base_dir, "remaster/") + "md5sum.new " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt")
+        #Remove boot.cat from md5sum.txt
+        os.system("sed -e '/boot.cat/d' " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt > " + os.path.join(self.base_dir, "remaster/") + "md5sum.new")
+        os.system("mv " + os.path.join(self.base_dir, "remaster/") + "md5sum.new " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt")
+        #Remove isolinux.bin from md5sum.txt
+        os.system("sed -e '/isolinux.bin/d' " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt > " + os.path.join(self.base_dir, "remaster/") + "md5sum.new")
+        os.system("mv " + os.path.join(self.base_dir, "remaster/") + "md5sum.new " + os.path.join(self.base_dir, "remaster/") + "md5sum.txt")
+
+        # remove existing iso
+        if os.path.exists(self.build_live_cd_filename):			
+            os.system('rm -rf \"' + self.build_live_cd_filename + '\"')                
+        print "------- Building new ISO file"
+        os.system('genisoimage -o \"' + self.build_live_cd_filename + '\" -b \"isolinux/isolinux.bin\" -c \"isolinux/boot.cat\" -no-emul-boot -boot-load-size 4 -boot-info-table -V \"' + self.build_live_cd_description + '\" -cache-inodes -r -J -l \"' + self.remaster_dir + '\"')
+
         print _("Making Hybrid ISO...")
         os.system('isohybrid \"' + self.build_live_cd_filename + '\"')
-            
-		print "***** Finished!"
-		print "------- ISO Located: " + self.build_live_cd_filename  
-		if os.path.exists("/usr/bin/aplay"):
+        
+        print "***** Finished!"
+        print "------- ISO Located: " + self.build_live_cd_filename  
+        if os.path.exists("/usr/bin/aplay"):
 			os.system("/usr/bin/aplay /usr/lib/linuxmint/mint-remaster-iso/done.wav")
 
 if __name__ == "__main__":  
