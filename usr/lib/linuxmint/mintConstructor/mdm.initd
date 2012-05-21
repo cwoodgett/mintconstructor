@@ -36,8 +36,8 @@ case "$1" in
         CONFIGURED_DAEMON=$(basename "$(cat $DEFAULT_DISPLAY_MANAGER_FILE 2> /dev/null)")
         if grep -wqs text /proc/cmdline; then
             log_warning_msg "Not starting MDM Display Manager; found 'text' in kernel commandline."
-        elif grep -wqs ubiquity-only /proc/cmdline; then
-            log_warning_msg "Not starting MDM Display Manager; found 'ubiquity-only' in kernel commandline."
+        elif grep -wqs only-ubiquity /proc/cmdline; then
+            log_warning_msg "Not starting MDM Display Manager; found 'only-ubiquity' in kernel commandline."
         elif [ -e "$DEFAULT_DISPLAY_MANAGER_FILE" ] && \
            [ "$HEED_DEFAULT_DISPLAY_MANAGER" = "true" ] && \
            [ "$CONFIGURED_DAEMON" != mdm ] ; then
