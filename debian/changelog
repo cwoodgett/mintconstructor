@@ -1,3 +1,9 @@
+mintconstructor (3.1.2) maya; urgency=low
+
+  * Replace external links in live kernel
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 31 Jul 2012 20:40:39 +0100
+
 mintconstructor (3.1.1) maya; urgency=low
 
   * Quit when there are broken links in the live kernel

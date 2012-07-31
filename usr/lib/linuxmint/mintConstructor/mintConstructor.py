@@ -756,6 +756,16 @@ class Reconstructor:
             if "gzip" in commands.getoutput("file %s" % initrd_path).lower():
                 os.popen("cp %s %s/remaster/casper/initrd.gz" % (initrd_path, self.customDir))                        
                 os.popen("gzip -cd \"%s/remaster/casper/initrd.gz\" -S \".gz\" | cpio -id" % self.customDir)                
+                links = commands.getoutput("find . -type l | (while read FN ; do ls -ld \"$FN\"; done)")
+                for link in links.split("\n"):                    
+                    link_target = link.split(" ")[-1]
+                    link_name = link.split(" ")[-3]
+                    if link_target[0] == "/":
+                        new_link_target = link_target[1:]
+                        new_path = "%s/root/%s" % (self.customDir, new_link_target)                  
+                        print "Replacing link '%s->%s' with %s" % (link_name, link_target, new_path)
+                        os.popen("rm %s" % link_name)
+                        os.popen("cp %s %s" % (new_path, link_name))       
                 broken_links = commands.getoutput("for i in `find .`; do if (test -h $i); then file $i|grep broken; fi; done | wc -l")
                 if broken_links != "0": 
                     print "WARNING: found broken links in kernel, quitting!!"                   
@@ -769,6 +779,16 @@ class Reconstructor:
             else:
                 os.popen("cp %s %s/remaster/casper/initrd.lz" % (initrd_path, self.customDir))                
                 os.popen("lzma -cd \"%s/remaster/casper/initrd.lz\" -S \".lz\" | cpio -id" % self.customDir)
+                links = commands.getoutput("find . -type l | (while read FN ; do ls -ld \"$FN\"; done)")
+                for link in links.split("\n"):                    
+                    link_target = link.split(" ")[-1]
+                    link_name = link.split(" ")[-3]
+                    if link_target[0] == "/":
+                        new_link_target = link_target[1:]
+                        new_path = "%s/root/%s" % (self.customDir, new_link_target)                  
+                        print "Replacing link '%s->%s' with %s" % (link_name, link_target, new_path)
+                        os.popen("rm %s" % link_name)
+                        os.popen("cp %s %s" % (new_path, link_name))                                
                 broken_links = commands.getoutput("for i in `find .`; do if (test -h $i); then file $i|grep broken; fi; done | wc -l")
                 if broken_links != "0":  
                     print "WARNING: found broken links in kernel, quitting!!"
