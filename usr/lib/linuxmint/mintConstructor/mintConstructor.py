@@ -755,8 +755,13 @@ class Reconstructor:
             os.chdir(tempdir)
             if "gzip" in commands.getoutput("file %s" % initrd_path).lower():
                 os.popen("cp %s %s/remaster/casper/initrd.gz" % (initrd_path, self.customDir))                        
-                os.popen("gzip -cd \"%s/remaster/casper/initrd.gz\" -S \".gz\" | cpio -id" % self.customDir)
-                os.popen("uuidgen -r > conf/uuid.conf")                
+                os.popen("gzip -cd \"%s/remaster/casper/initrd.gz\" -S \".gz\" | cpio -id" % self.customDir)                
+                broken_links = commands.getoutput("for i in `find .`; do if (test -h $i); then file $i|grep broken; fi; done | wc -l")
+                if broken_links != "0": 
+                    print "WARNING: found broken links in kernel, quitting!!"                   
+                    os.system("for i in `find .`; do if (test -h $i); then file $i|grep broken; fi; done")
+                    return
+                os.popen("uuidgen -r > conf/uuid.conf")      
                 os.popen("find . | cpio --quiet --dereference -o -H newc | gzip -9c > \"%s/remaster/casper/initrd.gz\"" % self.customDir)            
                 os.popen("cp conf/uuid.conf %s/remaster/.disk/casper-uuid-generic" % self.customDir)
                 os.popen("cp conf/uuid.conf %s/remaster/.disk/live-uuid-generic" % self.customDir)               
@@ -764,6 +769,11 @@ class Reconstructor:
             else:
                 os.popen("cp %s %s/remaster/casper/initrd.lz" % (initrd_path, self.customDir))                
                 os.popen("lzma -cd \"%s/remaster/casper/initrd.lz\" -S \".lz\" | cpio -id" % self.customDir)
+                broken_links = commands.getoutput("for i in `find .`; do if (test -h $i); then file $i|grep broken; fi; done | wc -l")
+                if broken_links != "0":  
+                    print "WARNING: found broken links in kernel, quitting!!"
+                    os.system("for i in `find .`; do if (test -h $i); then file $i|grep broken; fi; done")
+                    return
                 os.popen("uuidgen -r > conf/uuid.conf")                
                 os.popen("find . | cpio --quiet --dereference -o -H newc | lzma -9c > \"%s/remaster/casper/initrd.lz\"" % self.customDir)            
                 os.popen("cp conf/uuid.conf %s/remaster/.disk/casper-uuid-generic" % self.customDir)

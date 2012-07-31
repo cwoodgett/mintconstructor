@@ -1,3 +1,9 @@
+mintconstructor (3.1.1) maya; urgency=low
+
+  * Quit when there are broken links in the live kernel
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 31 Jul 2012 18:43:38 +0100
+
 mintconstructor (3.1.0) maya; urgency=low
 
   * Add mint-meta-codecs.desktop to noncodecs ISOs
