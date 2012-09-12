@@ -847,16 +847,16 @@ class Reconstructor:
             # update md5
             print _("Updating md5 sums...")
             os.system('rm ' + os.path.join(self.customDir, "remaster/") + ' md5sum.txt')
+            os.system('rm -f ' + os.path.join(self.customDir, "remaster/") + ' MD5SUMS')
             os.popen('cd \"' + os.path.join(self.customDir, "remaster/") + '\"; ' + 'find . -type f -print0 | xargs -0 md5sum > md5sum.txt')
-            #Remove md5sum.txt from md5sum.txt
-            os.system("sed -e '/md5sum.txt/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
-            os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
-            #Remove boot.cat from md5sum.txt
-            os.system("sed -e '/boot.cat/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
-            os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
-            #Remove isolinux.bin from md5sum.txt
-            os.system("sed -e '/isolinux.bin/d' " + os.path.join(self.customDir, "remaster/") + "md5sum.txt > " + os.path.join(self.customDir, "remaster/") + "md5sum.new")
-            os.system("mv " + os.path.join(self.customDir, "remaster/") + "md5sum.new " + os.path.join(self.customDir, "remaster/") + "md5sum.txt")
+            #Remove md5sum.txt, MD5SUMS, boot.cat and isolinux.bin from md5sum.txt
+            os.system("sed -i '/md5sum.txt/d' %s/remaster/md5sum.txt" % self.customDir)
+            os.system("sed -i '/MD5SUMS/d' %s/remaster/md5sum.txt" % self.customDir)        
+            os.system("sed -i '/boot.cat/d' %s/remaster/md5sum.txt" % self.customDir)
+            os.system("sed -i '/isolinux.bin/d'  %s/remaster/md5sum.txt" % self.customDir)
+            #Copy md5sum.txt to MD5SUMS (for Debian compatibility)
+            os.system("cp %s/remaster/md5sum.txt %s/remaster/MD5SUMS" % (self.customDir, self.customDir))
+            
             # remove existing iso
             if os.path.exists(self.buildLiveCdFilename):
                 print _("Removing existing ISO...")

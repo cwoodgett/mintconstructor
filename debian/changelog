@@ -1,3 +1,15 @@
+mintconstructor (3.1.4) maya; urgency=low
+
+  * Removed MD5SUMS from md5 file
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 12 Sep 2012 16:08:08 +0100
+
+mintconstructor (3.1.3) maya; urgency=low
+
+  * Added MD5SUMS for Debian compatibility
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 12 Sep 2012 14:39:34 +0100
+
 mintconstructor (3.1.2) maya; urgency=low
 
   * Replace external links in live kernel
