@@ -1,3 +1,9 @@
+mintconstructor (3.1.5) nadia; urgency=low
+
+  * Don't change resolv.conf
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 31 Oct 2012 15:01:37 +0000
+
 mintconstructor (3.1.4) maya; urgency=low
 
   * Removed MD5SUMS from md5 file
