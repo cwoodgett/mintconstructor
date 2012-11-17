@@ -368,10 +368,10 @@ class Reconstructor:
             os.popen('chmod a+x ' + os.path.join(self.customDir, "/tmp/reconstructor-terminal.sh"))
             # TODO: replace default terminal title with "Reconstructor Terminal"
             # use gnome-terminal if available -- more features
-            #if commands.getoutput('which gnome-terminal') != '':
-            #   print _('Launching Gnome-Terminal for advanced customization...')
-            #   os.popen('export HOME=/root ; gnome-terminal --hide-menubar -t \"Reconstructor Terminal\" -e \"/tmp/reconstructor-terminal.sh\"')
-            if commands.getoutput('which x-terminal-emulator') != '':
+            if commands.getoutput('which gnome-terminal') != '':
+               print _('Launching Gnome-Terminal for advanced customization...')
+               os.popen('export HOME=/root ; gnome-terminal -t \"%s\" -e \"/tmp/reconstructor-terminal.sh\"' % self.folder)
+            elif commands.getoutput('which x-terminal-emulator') != '':
                 print _('Launching Xterm for advanced customization...')
                 # use x-terminal-emulator if xterm isn't available
                 if os.path.exists("/usr/bin/xterm"):
