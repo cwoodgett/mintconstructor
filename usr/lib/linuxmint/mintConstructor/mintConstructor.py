@@ -366,58 +366,47 @@ class Reconstructor:
             f=open(scr_file, 'w')
             f.write(scr)
             f.close()
-            os.popen('chmod a+x ' + os.path.join(self.customDir, scr_file))            
+            os.popen('chmod a+x ' + os.path.join(self.customDir, scr_file))  
+            print "FILE: %s" % scr_file
+            if os.path.exists(scr_file):
+                print "EXISTS"
+            else:
+                print "DOES NOT EXIST"
             # use gnome-terminal if available -- more features
             if commands.getoutput('which gnome-terminal') != '':
                print _('Launching Gnome-Terminal for advanced customization...')
-               os.popen('export HOME=/root ; gnome-terminal -t \"MC: %s\" -e \"%s\"' % (self.folder, scr_file))
+               os.popen('export HOME=/root ; gnome-terminal -t \"MC: %s\" -e \"chroot %s\"' % (self.folder, os.path.join(self.customDir, "root/")))
             elif commands.getoutput('which x-terminal-emulator') != '':
                 print _('Launching Xterm for advanced customization...')
                 # use x-terminal-emulator if xterm isn't available
                 if os.path.exists("/usr/bin/xterm"):
-                    os.popen('export HOME=/root ; xterm -bg black -fg white -rightbar -title \"MC: %s\" -e %s' % (self.folder, scr_file))
+                    os.popen('export HOME=/root ; xterm -bg black -fg white -rightbar -title \"MC: %s\" -e \"chroot %s\"' % (self.folder, os.path.join(self.customDir, "root/")))
                 else:
                     os.popen('export HOME=/root ; x-terminal-emulator -e %s' % scr_file)
             else:
                 print _('Error: no valid terminal found')
                 gtk.main_quit()
                 sys.exit(1)
-
-            # restore wgetrc
-            print _("Restoring wgetrc configuration...")
-            os.popen('mv -f \"' + os.path.join(self.customDir, "root/etc/wgetrc.orig") + '\" \"' + os.path.join(self.customDir, "root/etc/wgetrc") + '\"')
-            # remove apt.conf
-            #print _("Removing apt.conf configuration...")
-            #os.popen('rm -Rf \"' + os.path.join(self.customDir, "root/etc/apt/apt.conf") + '\"')
-            # remove dns info
-            #print _("Removing DNS info...")
-            #os.popen('rm -Rf \"' + os.path.join(self.customDir, "root/etc/resolv.conf") + '\"')
-            # umount /proc
-            print _("Umounting /proc...")
-            os.popen('umount \"' + os.path.join(self.customDir, "root/proc/") + '\"')
-            # remove temp script
-            os.popen('rm -f %s' % scr_file)
-
-        except Exception, detail:
-            # restore settings
-            # restore wgetrc
-            print _("Restoring wgetrc configuration...")
-            os.popen('mv -f \"' + os.path.join(self.customDir, "root/etc/wgetrc.orig") + '\" \"' + os.path.join(self.customDir, "root/etc/wgetrc") + '\"')
-            # remove apt.conf
-            #print _("Removing apt.conf configuration...")
-            #os.popen('rm -Rf \"' + os.path.join(self.customDir, "root/etc/apt/apt.conf") + '\"')
-            # remove dns info
-            #print _("Removing DNS info...")
-            #os.popen('rm -Rf \"' + os.path.join(self.customDir, "root/etc/resolv.conf") + '\"')
-            # umount /proc
-            print _("Umounting /proc...")
-            os.popen('umount \"' + os.path.join(self.customDir, "root/proc/") + '\"')
-            # remove temp script
-            os.popen('rm -f %s' % scr_file)
-
-            errText = _('Error launching terminal: ')
-            print errText, detail
+            
+        except Exception, detail:            
+            print "Error launching terminal: "
+            print detail
             pass
+        finally:
+            # restore wgetrc
+            print _("Restoring wgetrc configuration...")
+            os.popen('mv -f \"' + os.path.join(self.customDir, "root/etc/wgetrc.orig") + '\" \"' + os.path.join(self.customDir, "root/etc/wgetrc") + '\"')
+            # remove apt.conf
+            #print _("Removing apt.conf configuration...")
+            #os.popen('rm -Rf \"' + os.path.join(self.customDir, "root/etc/apt/apt.conf") + '\"')
+            # remove dns info
+            #print _("Removing DNS info...")
+            #os.popen('rm -Rf \"' + os.path.join(self.customDir, "root/etc/resolv.conf") + '\"')
+            # umount /proc
+            print _("Umounting /proc...")
+            os.popen('umount \"' + os.path.join(self.customDir, "root/proc/") + '\"')
+            # remove temp script
+            os.popen('rm -f %s' % scr_file)
 
         return
 
