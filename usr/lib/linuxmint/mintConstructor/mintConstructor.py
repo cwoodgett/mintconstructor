@@ -277,7 +277,7 @@ class Reconstructor:
                     return False
         elif pageNum == self.pageLiveCustomize:
             d = datetime.datetime.now()
-            filename = d.strftime("dev-%Y%m%d-%H%M") + ".iso"
+            filename = self.folder.lower() + d.strftime("-dev-%Y%m%d-%H%M") + ".iso"
             self.wTree.get_widget("entryLiveIsoFilename").set_text(self.customDir + "/" + filename)
 
             if os.path.exists(os.path.join(self.customDir, "iso_name")):
@@ -344,6 +344,7 @@ class Reconstructor:
 
     # launch chroot terminal
     def launchTerminal(self):
+        scr_file = "/tmp/mintconstructor-%s.sh" % os.getpid()
         try:
             # setup environment
             # copy dns info
@@ -360,24 +361,23 @@ class Reconstructor:
             # backup
             os.popen('mv -f \"' + os.path.join(self.customDir, "root/etc/wgetrc") + '\" \"' + os.path.join(self.customDir, "root/etc/wgetrc.orig") + '\"')
             os.popen('cp -f /etc/wgetrc ' + os.path.join(self.customDir, "root/etc/wgetrc"))
-            # HACK: create temporary script for chrooting
-            scr = '#!/bin/sh\n#\n#\t(c) reconstructor, 2006\n#\nchroot ' + os.path.join(self.customDir, "root/") + '\n'
-            f=open('/tmp/reconstructor-terminal.sh', 'w')
+            # HACK: create temporary script for chrooting            
+            scr = '#!/bin/sh\n#\n#\t(c) reconstructor, 2006\n#\nchroot ' + os.path.join(self.customDir, "root/") + '\n'            
+            f=open(scr_file, 'w')
             f.write(scr)
             f.close()
-            os.popen('chmod a+x ' + os.path.join(self.customDir, "/tmp/reconstructor-terminal.sh"))
-            # TODO: replace default terminal title with "Reconstructor Terminal"
+            os.popen('chmod a+x ' + os.path.join(self.customDir, scr_file))            
             # use gnome-terminal if available -- more features
             if commands.getoutput('which gnome-terminal') != '':
                print _('Launching Gnome-Terminal for advanced customization...')
-               os.popen('export HOME=/root ; gnome-terminal -t \"%s\" -e \"/tmp/reconstructor-terminal.sh\"' % self.folder)
+               os.popen('export HOME=/root ; gnome-terminal -t \"MC: %s\" -e \"%s\"' % (self.folder, scr_file))
             elif commands.getoutput('which x-terminal-emulator') != '':
                 print _('Launching Xterm for advanced customization...')
                 # use x-terminal-emulator if xterm isn't available
                 if os.path.exists("/usr/bin/xterm"):
-                    os.popen('export HOME=/root ; xterm -bg black -fg white -rightbar -title \"%s\" -e /tmp/reconstructor-terminal.sh' % self.folder)
+                    os.popen('export HOME=/root ; xterm -bg black -fg white -rightbar -title \"MC: %s\" -e %s' % (self.folder, scr_file))
                 else:
-                    os.popen('export HOME=/root ; x-terminal-emulator -e /tmp/reconstructor-terminal.sh')
+                    os.popen('export HOME=/root ; x-terminal-emulator -e %s' % scr_file)
             else:
                 print _('Error: no valid terminal found')
                 gtk.main_quit()
@@ -396,7 +396,7 @@ class Reconstructor:
             print _("Umounting /proc...")
             os.popen('umount \"' + os.path.join(self.customDir, "root/proc/") + '\"')
             # remove temp script
-            os.popen('rm -Rf /tmp/reconstructor-terminal.sh')
+            os.popen('rm -f %s' % scr_file)
 
         except Exception, detail:
             # restore settings
@@ -413,7 +413,7 @@ class Reconstructor:
             print _("Umounting /proc...")
             os.popen('umount \"' + os.path.join(self.customDir, "root/proc/") + '\"')
             # remove temp script
-            os.popen('rm -Rf /tmp/reconstructor-terminal.sh')
+            os.popen('rm -f %s' % scr_file)
 
             errText = _('Error launching terminal: ')
             print errText, detail
