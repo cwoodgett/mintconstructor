@@ -349,7 +349,7 @@ class Reconstructor:
             # setup environment
             # copy dns info
             #print _("Copying DNS info...")
-            #os.popen('cp -f /etc/resolv.conf ' + os.path.join(self.customDir, "root/etc/resolv.conf"))
+            os.popen('cp -f /etc/resolv.conf ' + os.path.join(self.customDir, "root/etc/resolv.conf"))
             # mount /proc
             print _("Mounting /proc filesystem...")
             os.popen('mount --bind /proc \"' + os.path.join(self.customDir, "root/proc") + '\"')
@@ -399,9 +399,15 @@ class Reconstructor:
             # remove apt.conf
             #print _("Removing apt.conf configuration...")
             #os.popen('rm -Rf \"' + os.path.join(self.customDir, "root/etc/apt/apt.conf") + '\"')
+
             # remove dns info
-            #print _("Removing DNS info...")
-            #os.popen('rm -Rf \"' + os.path.join(self.customDir, "root/etc/resolv.conf") + '\"')
+            print _("Removing DNS info...")
+            os.popen('rm -Rf \"' + os.path.join(self.customDir, "root/etc/resolv.conf") + '\"')
+
+            # re-create symbolic link for resolv.conf
+            print _("Re-creating symbolic link for resolv.conf")
+            os.popen('ln -s ' + os.path.join(self.customDir, "root/etc/resolv.conf") + ' ../var/run/resolvconf/resolv.conf')
+
             # umount /proc
             print _("Umounting /proc...")
             os.popen('umount \"' + os.path.join(self.customDir, "root/proc/") + '\"')
