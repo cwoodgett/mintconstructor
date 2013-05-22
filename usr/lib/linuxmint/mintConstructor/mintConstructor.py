@@ -349,7 +349,8 @@ class Reconstructor:
             # setup environment
             # copy dns info
             #print _("Copying DNS info...")
-            os.popen('cp -f /etc/resolv.conf ' + os.path.join(self.customDir, "root/etc/resolv.conf"))
+            os.popen('rm ' + os.path.join(self.customDir, "root/etc/resolv.conf"))
+            os.popen('cp -pRL /etc/resolv.conf ' + os.path.join(self.customDir, "root/etc/resolv.conf"))
             # mount /proc
             print _("Mounting /proc filesystem...")
             os.popen('mount --bind /proc \"' + os.path.join(self.customDir, "root/proc") + '\"')
@@ -380,7 +381,7 @@ class Reconstructor:
                 print _('Launching Xterm for advanced customization...')
                 # use x-terminal-emulator if xterm isn't available
                 if os.path.exists("/usr/bin/xterm"):
-                    os.popen('export HOME=/root ; xterm -bg black -fg white -rightbar -title \"MC: %s\" -e \"chroot %s\"' % (self.folder, os.path.join(self.customDir, "root/")))
+                    os.popen('export HOME=/root ; xterm -bg white -fg black -rightbar -title \"MC: %s\" -e \"chroot %s\"' % (self.folder, os.path.join(self.customDir, "root/")))
                 else:
                     os.popen('export HOME=/root ; x-terminal-emulator -e %s' % scr_file)
             else:
@@ -406,7 +407,8 @@ class Reconstructor:
 
             # re-create symbolic link for resolv.conf
             print _("Re-creating symbolic link for resolv.conf")
-            os.popen('ln -s ' + os.path.join(self.customDir, "root/etc/resolv.conf") + ' ../var/run/resolvconf/resolv.conf')
+            #os.popen('ln -s ' + os.path.join(self.customDir, "root/etc/resolv.conf") + ' ../var/run/resolvconf/resolv.conf')
+            os.popen('ln -s ' + ' ../var/run/resolvconf/resolv.conf ' + os.path.join(self.customDir, "root/etc/resolv.conf"))
 
             # umount /proc
             print _("Umounting /proc...")
