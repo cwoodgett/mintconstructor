@@ -407,7 +407,6 @@ class Reconstructor:
 
             # re-create symbolic link for resolv.conf
             print _("Re-creating symbolic link for resolv.conf")
-            #os.popen('ln -s ' + os.path.join(self.customDir, "root/etc/resolv.conf") + ' ../var/run/resolvconf/resolv.conf')
             os.popen('ln -s ' + ' ../var/run/resolvconf/resolv.conf ' + os.path.join(self.customDir, "root/etc/resolv.conf"))
 
             # umount /proc
@@ -415,6 +414,14 @@ class Reconstructor:
             os.popen('umount \"' + os.path.join(self.customDir, "root/proc/") + '\"')
             # remove temp script
             os.popen('rm -f %s' % scr_file)
+
+            # clean up
+            os.popen('aptitude purge ~c')
+            os.popen('aptitude unmarkauto ~M')
+            os.popen('apt-get clean; rm -rf /var/cache/debconf/*.dat-old; rm -rf /var/lib/aptitude/*.old; rm -rf /var/lib/dpkg/*-old; rm -rf /var/cache/apt/*.bin; updatedb ')
+            os.popen('history -c')
+            os.popen('rm /root/.bash_history')
+            os.popen('history -c')
 
         return
 
