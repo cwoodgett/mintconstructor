@@ -349,8 +349,8 @@ class Reconstructor:
             # setup environment
             # copy dns info
             #print _("Copying DNS info...")
-            os.popen('rm ' + os.path.join(self.customDir, "root/etc/resolv.conf"))
-            os.popen('cp -pRL /etc/resolv.conf ' + os.path.join(self.customDir, "root/etc/resolv.conf"))
+            os.popen('rm -rf \"' + os.path.join(self.customDir, "root/etc/resolv.conf") + '\"')
+            os.popen('cp -pRL /etc/resolv.conf \"' + os.path.join(self.customDir, "root/etc/resolv.conf") + '\"')
             # mount /proc
             print _("Mounting /proc filesystem...")
             os.popen('mount --bind /proc \"' + os.path.join(self.customDir, "root/proc") + '\"')
@@ -407,7 +407,7 @@ class Reconstructor:
 
             # re-create symbolic link for resolv.conf
             print _("Re-creating symbolic link for resolv.conf")
-            os.popen('ln -s ' + ' ../var/run/resolvconf/resolv.conf ' + os.path.join(self.customDir, "root/etc/resolv.conf"))
+            os.popen('ln -s ../var/run/resolvconf/resolv.conf \"' + os.path.join(self.customDir, "root/etc/resolv.conf") + '\"')
 
             # umount /proc
             print _("Umounting /proc...")
